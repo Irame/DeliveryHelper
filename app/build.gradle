@@ -1,0 +1,41 @@
+apply plugin: 'com.android.application'
+
+Properties secretProps = new Properties()
+secretProps.load(new FileInputStream("secret.properties"))
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.3"
+
+    defaultConfig {
+        applicationId "de.vanselow.deliveryhelper"
+        minSdkVersion 22
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        buildTypes.each {
+            it.buildConfigField 'String', 'GOOGLE_MAPS_API_KEY', '"' + secretProps.getProperty("GoogleMapsApiKey") + '"'
+            it.resValue "string", "google_geo_api_key", secretProps.getProperty("GoogleGeoApiKey")
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.google.android.gms:play-services:8.4.0'
+    compile 'com.android.support:cardview-v7:23.4.0'
+    compile files('libs/SQLiteStudioRemote.jar')
+}
+
+
+
+
+apply plugin: 'com.google.gms.google-services'

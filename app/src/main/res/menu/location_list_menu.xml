@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_locations_sort"
+        android:icon="@android:drawable/ic_popup_sync"
+        android:title="@string/sort_locations"
+        android:onClick="sortLocationsOnClick"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_location_add"
+        android:icon="@android:drawable/ic_input_add"
+        android:title="@string/add_location"
+        android:onClick="addLocationOnClick"
+        app:showAsAction="always"/>
+
+</menu>
