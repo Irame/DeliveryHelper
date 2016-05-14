@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("locations", locationAdapter.getValues());
+        outState.putParcelableArrayList("locations", locationAdapter.getAllValues());
     }
 
     @Override
@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                 price = data.getFloatExtra(AddLocationActivity.PRICE_RESULT_KEY, 0);
             }};
             LocationsDatabaseHelper.getInstance(this).addOrUpdateLocation(newLocation);
-            locationAdapter.add(newLocation);
+            locationAdapter.addItem(newLocation);
         }
     }
 
@@ -108,11 +108,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void sortLocationsOnClick(MenuItem item) {
         Map<String, String> params = new HashMap<>();
-        Location location = locationCache.getBestLocation();
+        final Location location = locationCache.getBestLocation();
         params.put("origin", location.getLatitude() + "," + location.getLongitude());
         params.put("destination", "Apotheke+Vanselow,Schönbornstraße+19,97440+Werneck");
         StringBuilder waypoints = new StringBuilder("optimize:true");
-        for (DeliveryLocationModel loc : locationAdapter.getValues()) {
+        for (DeliveryLocationModel loc : locationAdapter.getValuesForSection(DeliveryLocationModel.Status.OPEN)) {
             waypoints.append("|").append(loc.latitude).append(",").append(loc.longitude);
         }
         params.put("waypoints", waypoints.toString());
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             protected void onPostExecute(JSONObject jsonObject) {
                 try {
                     JSONArray order = jsonObject.getJSONArray("routes").getJSONObject(0).getJSONArray("waypoint_order");
-                    ArrayList<DeliveryLocationModel> locationList = locationAdapter.getValues();
+                    ArrayList<DeliveryLocationModel> locationList = locationAdapter.getValuesForSection(DeliveryLocationModel.Status.OPEN);
 
                     if (locationList.size() != order.length())
                         return;
@@ -131,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
                         orderArray[i] = order.getInt(i);
                     }
                     Collections.sort(locationList, new LocationComparator(locationList, orderArray));
+                    locationAdapter.selectedItemPosition = -1;
                     locationAdapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     e.printStackTrace();

@@ -4,14 +4,19 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.internal.PlaceImpl;
 
 /**
  * Created by Felix on 12.05.2016.
  */
 public class DeliveryLocationModel implements Parcelable {
     public enum Status {
-        OPEN, DELIVERED
+        OPEN("Open"), DELIVERED("Delivered");
+
+        public final String sectionText;
+
+        Status(String sectionText) {
+            this.sectionText = sectionText;
+        }
     }
 
     public long id;
