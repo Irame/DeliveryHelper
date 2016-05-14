@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         params.put("origin", location.getLatitude() + "," + location.getLongitude());
         params.put("destination", "Apotheke+Vanselow,Schönbornstraße+19,97440+Werneck");
         StringBuilder waypoints = new StringBuilder("optimize:true");
-        for (DeliveryLocationModel loc : locationAdapter.getValuesForSection(DeliveryLocationModel.Status.OPEN)) {
+        for (DeliveryLocationModel loc : locationAdapter.getValuesForSection(DeliveryLocationModel.State.OPEN)) {
             waypoints.append("|").append(loc.latitude).append(",").append(loc.longitude);
         }
         params.put("waypoints", waypoints.toString());
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             protected void onPostExecute(JSONObject jsonObject) {
                 try {
                     JSONArray order = jsonObject.getJSONArray("routes").getJSONObject(0).getJSONArray("waypoint_order");
-                    ArrayList<DeliveryLocationModel> locationList = locationAdapter.getValuesForSection(DeliveryLocationModel.Status.OPEN);
+                    ArrayList<DeliveryLocationModel> locationList = locationAdapter.getValuesForSection(DeliveryLocationModel.State.OPEN);
 
                     if (locationList.size() != order.length())
                         return;

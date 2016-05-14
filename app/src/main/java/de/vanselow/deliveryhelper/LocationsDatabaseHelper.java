@@ -7,8 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.google.android.gms.location.places.Place;
-
 import java.util.ArrayList;
 
 /**
@@ -18,7 +16,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = LocationsDatabaseHelper.class.getName();
     private static LocationsDatabaseHelper instance;
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "vanselow_delivery_helper";
 
     private static final String LOCATIONS_TABLE_NAME = "locations";
@@ -29,7 +27,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
     private static final String LOCATIONS_LATITUDE = "latitude";
     private static final String LOCATIONS_LONGITUDE = "longitude";
     private static final String LOCATIONS_PRICE = "price";
-    private static final String LOCATIONS_STATUS = "status";
+    private static final String LOCATIONS_STATE = "state";
 
     private LocationsDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -45,7 +43,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
                 LOCATIONS_LATITUDE + " REAL NOT NULL, " +
                 LOCATIONS_LONGITUDE + " REAL NOT NULL, " +
                 LOCATIONS_PRICE + " REAL NOT NULL, " +
-                LOCATIONS_STATUS + " TEXT NOT NULL )");
+                LOCATIONS_STATE + " TEXT NOT NULL )");
     }
 
     @Override
@@ -75,7 +73,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
             values.put(LOCATIONS_LATITUDE, dl.latitude);
             values.put(LOCATIONS_LONGITUDE, dl.longitude);
             values.put(LOCATIONS_PRICE, dl.price);
-            values.put(LOCATIONS_STATUS, dl.status.name());
+            values.put(LOCATIONS_STATE, dl.state.name());
 
             if (dl.id >= 0) {
                 int rows = db.update(LOCATIONS_TABLE_NAME, values, LOCATIONS_ID + " = ?", new String[]{Long.toString(dl.id)});
@@ -123,7 +121,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
                             cursor.getDouble(cursor.getColumnIndex(LOCATIONS_LATITUDE)),
                             cursor.getDouble(cursor.getColumnIndex(LOCATIONS_LONGITUDE)),
                             cursor.getFloat(cursor.getColumnIndex(LOCATIONS_PRICE)),
-                            DeliveryLocationModel.Status.valueOf(cursor.getString(cursor.getColumnIndex(LOCATIONS_STATUS)))
+                            DeliveryLocationModel.State.valueOf(cursor.getString(cursor.getColumnIndex(LOCATIONS_STATE)))
                     ));
                 } while (cursor.moveToNext());
             }

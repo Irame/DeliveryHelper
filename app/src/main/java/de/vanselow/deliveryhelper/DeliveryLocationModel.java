@@ -9,12 +9,12 @@ import com.google.android.gms.location.places.Place;
  * Created by Felix on 12.05.2016.
  */
 public class DeliveryLocationModel implements Parcelable {
-    public enum Status {
+    public enum State {
         OPEN("Open"), DELIVERED("Delivered");
 
         public final String sectionText;
 
-        Status(String sectionText) {
+        State(String sectionText) {
             this.sectionText = sectionText;
         }
     }
@@ -26,7 +26,7 @@ public class DeliveryLocationModel implements Parcelable {
     public double latitude;
     public double longitude;
     public float price;
-    public Status status;
+    public State state;
 
     DeliveryLocationModel(String name, Place place) {
         id = -1;
@@ -36,10 +36,10 @@ public class DeliveryLocationModel implements Parcelable {
         latitude = place.getLatLng().latitude;
         longitude = place.getLatLng().longitude;
         price = 0;
-        status = Status.OPEN;
+        state = State.OPEN;
     }
 
-    public DeliveryLocationModel(long id, String name, String address, String placeid, double latitude, double longitude, float price, Status status) {
+    public DeliveryLocationModel(long id, String name, String address, String placeid, double latitude, double longitude, float price, State state) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -47,7 +47,7 @@ public class DeliveryLocationModel implements Parcelable {
         this.latitude = latitude;
         this.longitude = longitude;
         this.price = price;
-        this.status = status;
+        this.state = state;
     }
 
     protected DeliveryLocationModel(Parcel in) {
@@ -58,7 +58,7 @@ public class DeliveryLocationModel implements Parcelable {
         latitude = in.readDouble();
         longitude = in.readDouble();
         price = in.readFloat();
-        status = Status.valueOf(in.readString());
+        state = State.valueOf(in.readString());
     }
 
     @Override
@@ -70,7 +70,7 @@ public class DeliveryLocationModel implements Parcelable {
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
         dest.writeFloat(price);
-        dest.writeString(status.name());
+        dest.writeString(state.name());
     }
 
     @Override

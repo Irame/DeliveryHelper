@@ -34,12 +34,12 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
         layoutInflater = LayoutInflater.from(context);
         allValues = new ArrayList<>();
         sections = new ArrayList<>();
-        for (DeliveryLocationModel.Status status : DeliveryLocationModel.Status.values()) {
+        for (DeliveryLocationModel.State state : DeliveryLocationModel.State.values()) {
             allValues.add(new ArrayList<DeliveryLocationModel>());
-            sections.add(status.sectionText);
+            sections.add(state.sectionText);
         }
         for (DeliveryLocationModel dl : values) {
-            allValues.get(dl.status.ordinal()).add(dl);
+            allValues.get(dl.state.ordinal()).add(dl);
         }
     }
 
@@ -126,7 +126,7 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
                         @Override
                         public void onClick(View v) {
                             DeliveryLocationModel loc = removeItem(selectedItemPosition);
-                            loc.status = DeliveryLocationModel.Status.DELIVERED;
+                            loc.state = DeliveryLocationModel.State.DELIVERED;
                             LocationsDatabaseHelper.getInstance(context).addOrUpdateLocation(loc);
                             addItem(loc);
                         }
@@ -185,8 +185,8 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
         return v;
     }
 
-    public ArrayList<DeliveryLocationModel> getValuesForSection(DeliveryLocationModel.Status status) {
-        return allValues.get(status.ordinal());
+    public ArrayList<DeliveryLocationModel> getValuesForSection(DeliveryLocationModel.State state) {
+        return allValues.get(state.ordinal());
     }
 
     public ArrayList<DeliveryLocationModel> getAllValues() {
@@ -198,7 +198,7 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
     }
 
     public void addItem(DeliveryLocationModel dl) {
-        allValues.get(dl.status.ordinal()).add(dl);
+        allValues.get(dl.state.ordinal()).add(dl);
         notifyDataSetChanged();
     }
 
