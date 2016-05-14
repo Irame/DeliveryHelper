@@ -6,11 +6,12 @@
 
     <TextView
         android:layout_width="wrap_content"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="&lt;Section>"
         android:id="@+id/location_list_section_header_text"
         android:layout_gravity="center_horizontal"
         android:gravity="bottom"
-        android:textColor="#ffffff" />
+        android:textColor="#ffffff"
+        android:height="40dp" />
 </LinearLayout>
