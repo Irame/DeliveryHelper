@@ -154,9 +154,9 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
                 case TYPE_ITEM:
                     DeliveryLocationModel loc = (DeliveryLocationModel) p;
 
-                    TextView name = (TextView) v.findViewById(R.id.nameLabel);
-                    TextView address = (TextView) v.findViewById(R.id.adressLabel);
-                    TextView price = (TextView) v.findViewById(R.id.priceLabel);
+                    TextView name = (TextView) v.findViewById(R.id.location_list_item_name_label);
+                    TextView address = (TextView) v.findViewById(R.id.location_list_item_address_label);
+                    TextView price = (TextView) v.findViewById(R.id.location_list_item_price_label);
 
                     if (name != null) {
                         name.setText(loc.name);
