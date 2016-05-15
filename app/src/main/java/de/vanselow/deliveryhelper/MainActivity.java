@@ -1,15 +1,20 @@
 package de.vanselow.deliveryhelper;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.google.android.gms.location.places.Place;
@@ -106,7 +111,14 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(new Intent(getApplicationContext(), AddLocationActivity.class), ADD_LOCATION_REQUEST);
     }
 
-    public void sortLocationsOnClick(MenuItem item) {
+    public void sortLocationsOnClick(final MenuItem item) {
+        LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
+        ImageView iv = (ImageView)inflater.inflate(R.layout.iv_sort_locations, null);
+        Animation rotation = AnimationUtils.loadAnimation(this, R.anim.rotate_menu_item);
+        rotation.setRepeatCount(Animation.INFINITE);
+        iv.startAnimation(rotation);
+        item.setActionView(iv);
+
         Map<String, String> params = new HashMap<>();
         final Location location = locationCache.getBestLocation();
         params.put("origin", location.getLatitude() + "," + location.getLongitude());
@@ -136,6 +148,8 @@ public class MainActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+                item.getActionView().clearAnimation();
+                item.setActionView(null);
             }
         }.execute("maps", "directions", params);
     }
