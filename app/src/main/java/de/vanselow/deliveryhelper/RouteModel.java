@@ -30,6 +30,14 @@ public class RouteModel implements Parcelable {
         this.locations = new ArrayList<>();
     }
 
+    public float getTotalPrice() {
+        float sum = 0;
+        for (LocationModel location : locations) {
+            sum += location.price;
+        }
+        return sum;
+    }
+
     public int getOpenLocations() {
         int count = 0;
         for (LocationModel location : locations) {

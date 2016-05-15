@@ -10,6 +10,7 @@ import android.widget.TextView;
 import com.hb.views.PinnedSectionListView;
 
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 
 /**
@@ -59,6 +60,7 @@ public class RouteListAdapter extends BaseAdapter {
         TextView date = (TextView) v.findViewById(R.id.route_list_item_date_label);
         TextView open = (TextView) v.findViewById(R.id.route_list_item_open_count);
         TextView delivered = (TextView) v.findViewById(R.id.route_list_item_delivered_count);
+        TextView totalPrice = (TextView) v.findViewById(R.id.route_list_item_total_price_label);
 
         RouteModel route = (RouteModel) getItem(position);
 
@@ -77,6 +79,11 @@ public class RouteListAdapter extends BaseAdapter {
 
         if (delivered != null) {
             delivered.setText(Integer.toString(route.getDeliveredLocations()));
+        }
+
+        if (totalPrice != null) {
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
+            totalPrice.setText(currencyFormat.format(route.getTotalPrice()));
         }
 
         return v;
