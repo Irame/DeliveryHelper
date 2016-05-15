@@ -67,18 +67,6 @@ public class LocationListActivity extends AppCompatActivity {
         assert locationListView != null;
         locationListView.setAdapter(locationListAdapter);
 
-        locationListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (locationListAdapter.selectedItemPosition == position)
-                    locationListAdapter.selectedItemPosition = -1;
-                else
-                    locationListAdapter.selectedItemPosition = position;
-
-                locationListAdapter.notifyDataSetChanged();
-            }
-        });
-
         geoLocationCache = new GeoLocationCache(this);
 
         setResult(Activity.RESULT_OK, getIntent());

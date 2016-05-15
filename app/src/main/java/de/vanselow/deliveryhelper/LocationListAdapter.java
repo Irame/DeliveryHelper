@@ -3,14 +3,19 @@ package de.vanselow.deliveryhelper;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.hb.views.PinnedSectionListView;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -20,6 +25,8 @@ import de.vanselow.deliveryhelper.utils.DatabaseHelper;
  * Created by Felix on 12.05.2016.
  */
 public class LocationListAdapter extends BaseAdapter implements PinnedSectionListView.PinnedSectionListAdapter {
+    private static final String TAG = LocationListAdapter.class.getName();
+
     private static final int TYPE_ITEM = 0;
     private static final int TYPE_SEPERATOR = 1;
 
@@ -97,104 +104,29 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
     public View getView(int position, View convertView, ViewGroup parent) {
         View v = convertView;
 
-        int type = getItemViewType(position);
+        ViewHolder viewHolder;
         if (v == null) {
+            int type = getItemViewType(position);
             switch (type) {
                 case TYPE_ITEM:
                     v = layoutInflater.inflate(R.layout.location_list_item, null);
-
-                    v.findViewById(R.id.location_list_item_delete_button).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            LocationModel loc = removeItem(selectedItemPosition);
-                            DatabaseHelper.getInstance(context).deleteRouteLocation(loc);
-                            selectedItemPosition = -1;
-                            notifyDataSetChanged();
-                        }
-                    });
-
-                    v.findViewById(R.id.location_list_item_nav_button).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            LocationModel loc = (LocationModel) getItem(selectedItemPosition);
-                            Uri gmmIntentUri = Uri.parse(String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", loc.latitude, loc.longitude));
-                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                            mapIntent.setPackage("com.google.android.apps.maps");
-                            context.startActivity(mapIntent);
-                        }
-                    });
-
-                    v.findViewById(R.id.location_list_item_done_button).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            LocationModel loc = removeItem(selectedItemPosition);
-                            loc.state = LocationModel.State.DELIVERED;
-                            DatabaseHelper.getInstance(context).updateRouteLocation(loc);
-                            addItem(loc);
-                        }
-                    });
+                    viewHolder = new ItemViewHolder(v);
+                    v.setTag(viewHolder);
                     break;
                 case TYPE_SEPERATOR:
                     v = layoutInflater.inflate(R.layout.location_list_header, null);
+                    viewHolder = new HeaderViewHolder(v);
+                    v.setTag(viewHolder);
                     break;
+                default:
+                    Log.e(TAG, "Unknown Item type in location list");
+                    return null;
             }
-
+        } else {
+            viewHolder = (ViewHolder) v.getTag();
         }
 
-        if (type == TYPE_ITEM) {
-            View buttonBar = v.findViewById(R.id.location_list_item_button_bar);
-            if (selectedItemPosition == position)
-                buttonBar.setVisibility(View.VISIBLE);
-            else
-                buttonBar.setVisibility(View.GONE);
-        }
-
-        Object p = getItem(position);
-
-        if (p != null) {
-            switch (type) {
-                case TYPE_ITEM:
-                    LocationModel loc = (LocationModel) p;
-
-                    TextView name = (TextView) v.findViewById(R.id.location_list_item_name_label);
-                    TextView address = (TextView) v.findViewById(R.id.location_list_item_address_label);
-                    TextView price = (TextView) v.findViewById(R.id.location_list_item_price_label);
-                    TextView notes = (TextView) v.findViewById(R.id.location_list_item_notes_label);
-
-                    if (name != null) {
-                        name.setText(loc.name);
-                    }
-
-                    if (address != null) {
-                        address.setText(loc.address);
-                    }
-
-                    if (price != null) {
-                        price.setText(String.format(Locale.GERMANY, "%.2f€", loc.price));
-                    }
-
-                    if (notes != null) {
-                        if (loc.notes.isEmpty() || selectedItemPosition != position) {
-                            notes.setVisibility(View.GONE);
-                            notes.setText(null);
-                        } else {
-                            notes.setVisibility(View.VISIBLE);
-                            notes.setText(loc.notes);
-                        }
-                    }
-                    break;
-                case TYPE_SEPERATOR:
-                    String sectionStr = (String) p;
-
-                    TextView section = (TextView) v.findViewById(R.id.location_list_section_header_text);
-
-                    if (section != null) {
-                        section.setText(sectionStr);
-                    }
-                    break;
-            }
-        }
-
+        viewHolder.setup(position);
         return v;
     }
 
@@ -229,6 +161,105 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
             this.section = section;
             this.itemSectionPos = itemSectionPos;
             this.isSectionHeader = isSectionHeader;
+        }
+    }
+
+    private interface ViewHolder {
+        void setup(int position);
+    }
+
+    private class ItemViewHolder implements View.OnClickListener, ViewHolder {
+        public View itemView;
+
+        public TextView nameLabel;
+        public TextView addressLabel;
+        public TextView priceLabel;
+        public TextView notesLabel;
+        public LinearLayout buttonBar;
+        public ImageButton deleteButton;
+        public ImageButton navButton;
+        public ImageButton doneButton;
+
+        private int position;
+
+        public ItemViewHolder(View itemView) {
+            this.itemView = itemView;
+
+            nameLabel = (TextView) itemView.findViewById(R.id.location_list_item_name_label);
+            addressLabel = (TextView) itemView.findViewById(R.id.location_list_item_address_label);
+            priceLabel = (TextView) itemView.findViewById(R.id.location_list_item_price_label);
+            notesLabel = (TextView) itemView.findViewById(R.id.location_list_item_notes_label);
+            buttonBar = (LinearLayout) itemView.findViewById(R.id.location_list_item_button_bar);
+            deleteButton = (ImageButton) itemView.findViewById(R.id.location_list_item_delete_button);
+            navButton = (ImageButton) itemView.findViewById(R.id.location_list_item_nav_button);
+            doneButton = (ImageButton) itemView.findViewById(R.id.location_list_item_done_button);
+
+            itemView.setOnClickListener(this);
+            deleteButton.setOnClickListener(this);
+            navButton.setOnClickListener(this);
+            doneButton.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (v.getId() == itemView.getId()) {
+                if (selectedItemPosition == position)
+                    selectedItemPosition = -1;
+                else
+                    selectedItemPosition = position;
+                notifyDataSetChanged();
+            } else if (v.getId() == deleteButton.getId()) {
+                LocationModel loc = removeItem(position);
+                DatabaseHelper.getInstance(v.getContext()).deleteRouteLocation(loc);
+                selectedItemPosition = -1;
+                notifyDataSetChanged();
+            } else if (v.getId() == navButton.getId()) {
+                LocationModel loc = (LocationModel) getItem(position);
+                Uri gmmIntentUri = Uri.parse(String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", loc.latitude, loc.longitude));
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                v.getContext().startActivity(mapIntent);
+            } else if (v.getId() == doneButton.getId()) {
+                LocationModel loc = removeItem(position);
+                loc.state = LocationModel.State.DELIVERED;
+                DatabaseHelper.getInstance(v.getContext()).updateRouteLocation(loc);
+                addItem(loc);
+                notifyDataSetChanged();
+            }
+        }
+
+        public void setup(int position) {
+            this.position = position;
+
+            ItemInfo itemInfo = getItemInfo(position);
+            LocationModel item = allValues.get(itemInfo.section).get(itemInfo.itemSectionPos);
+
+            if (selectedItemPosition == position) {
+                buttonBar.setVisibility(View.VISIBLE);
+                notesLabel.setVisibility(item.notes.isEmpty() ? View.GONE : View.VISIBLE);
+            } else {
+                buttonBar.setVisibility(View.GONE);
+                notesLabel.setVisibility(View.GONE);
+            }
+            nameLabel.setText(item.name);
+            addressLabel.setText(item.address);
+            notesLabel.setText(item.notes);
+
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
+            priceLabel.setText(currencyFormat.format(item.price));
+        }
+    }
+
+    private class HeaderViewHolder implements ViewHolder {
+        private TextView sectionHeaderLabel;
+
+        public HeaderViewHolder(View itemView) {
+            sectionHeaderLabel = (TextView) itemView.findViewById(R.id.location_list_section_header_text);
+        }
+
+        public void setup(int position) {
+            ItemInfo itemInfo = getItemInfo(position);
+            sectionHeaderLabel.setText(sections.get(itemInfo.section));
         }
     }
 }
