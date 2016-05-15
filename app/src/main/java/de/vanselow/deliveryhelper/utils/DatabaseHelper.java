@@ -10,6 +10,7 @@ import android.util.Log;
 import java.util.ArrayList;
 
 import de.vanselow.deliveryhelper.LocationModel;
+import de.vanselow.deliveryhelper.RouteModel;
 
 /**
  * Created by Felix on 13.05.2016.
@@ -18,8 +19,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = DatabaseHelper.class.getName();
     private static DatabaseHelper instance;
 
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
     private static final String DATABASE_NAME = "vanselow_delivery_helper";
+
+    private static final String ROUTES_TABLE_NAME = "routes";
+    private static final String ROUTES_ID = "id";
+    private static final String ROUTES_NAME = "name";
+    private static final String ROUTES_DATE = "date";
 
     private static final String LOCATIONS_TABLE_NAME = "locations";
     private static final String LOCATIONS_ID = "id";
@@ -31,6 +37,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String LOCATIONS_PRICE = "price";
     private static final String LOCATIONS_NOTES = "notes";
     private static final String LOCATIONS_STATE = "state";
+    private static final String LOCATIONS_ROUTE_ID = "route_id";
 
     private DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -38,7 +45,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + LOCATIONS_TABLE_NAME + " (" +
+        db.execSQL("CREATE TABLE " + ROUTES_TABLE_NAME + " ( " +
+                ROUTES_ID + " INTEGER PRIMARY KEY, " +
+                ROUTES_NAME + " TEXT NOT NULL, " +
+                ROUTES_DATE + " INTEGER NOT NULL )");
+
+        db.execSQL("CREATE TABLE " + LOCATIONS_TABLE_NAME + " ( " +
                 LOCATIONS_ID + " INTEGER PRIMARY KEY, " +
                 LOCATIONS_NAME + " TEXT NOT NULL, " +
                 LOCATIONS_ADDRESS + " TEXT NOT NULL, " +
@@ -47,12 +59,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 LOCATIONS_LONGITUDE + " REAL NOT NULL, " +
                 LOCATIONS_PRICE + " REAL NOT NULL, " +
                 LOCATIONS_NOTES + " TEXT NOT NULL, " +
-                LOCATIONS_STATE + " TEXT NOT NULL )");
+                LOCATIONS_STATE + " TEXT NOT NULL, " +
+                LOCATIONS_ROUTE_ID + " INTEGER NOT NULL, " +
+                "FOREIGN KEY(" + LOCATIONS_ROUTE_ID + ") REFERENCES " + ROUTES_TABLE_NAME + "(" + ROUTES_ID + ") ON DELETE CASCADE )");
+    }
+
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+        db.setForeignKeyConstraintsEnabled(true);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion != newVersion) {
+            db.execSQL("DROP TABLE IF EXISTS " + ROUTES_TABLE_NAME);
             db.execSQL("DROP TABLE IF EXISTS " + LOCATIONS_TABLE_NAME);
             onCreate(db);
         }
@@ -65,7 +86,99 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return instance;
     }
 
-    public long addOrUpdateLocation(LocationModel dl) {
+    public long addOrUpdateRoute(RouteModel route) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        db.beginTransaction();
+        try {
+            ContentValues values = new ContentValues();
+            values.put(ROUTES_NAME, route.name);
+            values.put(ROUTES_DATE, route.date);
+
+            if (route.id >= 0) {
+                int rows = db.update(ROUTES_TABLE_NAME, values, ROUTES_ID + " = ?", new String[]{Long.toString(route.id)});
+                if (rows == 0) route.id = -1;
+            }
+            if (route.id < 0) {
+                route.id = db.insertOrThrow(ROUTES_TABLE_NAME, null, values);
+            }
+
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.e(TAG, "Error while trying to add or update a route to the database.");
+        } finally {
+            db.endTransaction();
+        }
+
+        return route.id;
+    }
+
+    public ArrayList<RouteModel> getAllRoutes() {
+        ArrayList<RouteModel> result = new ArrayList<>();
+        getAllRoutes(result);
+        return result;
+    }
+
+    private void getAllRoutes(ArrayList<RouteModel> routeList) {
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.query(ROUTES_TABLE_NAME,
+                null,   // all columns (*)
+                null,   // all rows (no WHERE)
+                null,   // no args for the WHERE
+                null,   // no grouping
+                null,   // no having (group selection)
+                null,   // no ordering
+                null);  // no limit
+
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    routeList.add(new RouteModel(
+                            cursor.getLong(cursor.getColumnIndex(ROUTES_ID)),
+                            cursor.getString(cursor.getColumnIndex(ROUTES_NAME)),
+                            cursor.getLong(cursor.getColumnIndex(ROUTES_DATE))
+                    ));
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error while trying to get all routes from the database.");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        for (RouteModel route : routeList) {
+            route.locations = getAllRouteLocations(route.id);
+        }
+    }
+
+    public void deleteRoute(RouteModel route) {
+        deleteRouteById(route.id);
+    }
+
+    public void deleteRouteById(long routeId) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            db.delete(ROUTES_TABLE_NAME, ROUTES_ID + " = ?", new String[]{Long.toString(routeId)});
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.e(TAG, "Error while trying to delete a route from the database.");
+        } finally {
+            db.endTransaction();
+        }
+
+    }
+
+    public long updateRouteLocation(LocationModel loc) {
+        return addOrUpdateRouteLocation(loc, -1);
+    }
+
+    public long addOrUpdateRouteLocation(LocationModel dl, long routeId) {
+        if (dl.id < 0 && routeId < 0) return -1;
+
         SQLiteDatabase db = getWritableDatabase();
 
         db.beginTransaction();
@@ -79,14 +192,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             values.put(LOCATIONS_PRICE, dl.price);
             values.put(LOCATIONS_NOTES, dl.notes);
             values.put(LOCATIONS_STATE, dl.state.name());
+            if (routeId >= 0)
+                values.put(LOCATIONS_ROUTE_ID, routeId);
 
             if (dl.id >= 0) {
                 int rows = db.update(LOCATIONS_TABLE_NAME, values, LOCATIONS_ID + " = ?", new String[]{Long.toString(dl.id)});
                 if (rows == 0) dl.id = -1;
             }
-            if (dl.id < 0){
+            if (dl.id < 0) {
                 dl.id = db.insertOrThrow(LOCATIONS_TABLE_NAME, null, values);
             }
+
             db.setTransactionSuccessful();
         } catch (Exception e) {
             Log.e(TAG, "Error while trying to add or update a location to the database.");
@@ -97,19 +213,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return dl.id;
     }
 
-    public ArrayList<LocationModel> getAllLocations() {
+    public ArrayList<LocationModel> getAllRouteLocations(long routeId) {
         ArrayList<LocationModel> result = new ArrayList<>();
-        getAllLocations(result);
+        getAllRouteLocations(routeId, result);
         return result;
     }
 
-    public void getAllLocations(ArrayList<LocationModel> locationList) {
+    public void getAllRouteLocations(long routeId, ArrayList<LocationModel> locationList) {
         SQLiteDatabase db = getReadableDatabase();
 
         Cursor cursor = db.query(LOCATIONS_TABLE_NAME,
-                null,   // all columns (*)
-                null,   // all rows (no WHERE)
-                null,   // no args for the WHERE
+                new String[]{LOCATIONS_ID, LOCATIONS_NAME, LOCATIONS_ADDRESS, LOCATIONS_PLACEID,
+                        LOCATIONS_LATITUDE, LOCATIONS_LONGITUDE, LOCATIONS_PRICE,
+                        LOCATIONS_NOTES, LOCATIONS_STATE},   // all columns (*)
+                LOCATIONS_ROUTE_ID + " = ?",   // all rows (no WHERE)
+                new String[]{Long.toString(routeId)},   // no args for the WHERE
                 null,   // no grouping
                 null,   // no having (group selection)
                 null,   // no ordering
@@ -140,15 +258,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void deleteLocation(LocationModel dl) {
-        deleteLocationById(dl.id);
+    public void deleteRouteLocation(LocationModel dl) {
+        deleteRouteLocationById(dl.id);
     }
 
-    public void deleteLocationById(long id) {
+    public void deleteRouteLocationById(long locationId) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
-            db.delete(LOCATIONS_TABLE_NAME, LOCATIONS_ID + " = ?", new String[]{Long.toString(id)});
+            db.delete(LOCATIONS_TABLE_NAME, LOCATIONS_ID + " = ?", new String[]{Long.toString(locationId)});
             db.setTransactionSuccessful();
         } catch (Exception e) {
             Log.e(TAG, "Error while trying to delete a location from the database.");
@@ -157,11 +275,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void deleteAllLocations() {
+    public void deleteAllRouteLocations(long routeId) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
-            db.delete(LOCATIONS_TABLE_NAME, null, null);
+            db.delete(LOCATIONS_TABLE_NAME, LOCATIONS_ROUTE_ID + " = ?", new String[]{Long.toString(routeId)});
             db.setTransactionSuccessful();
         } catch (Exception e) {
             Log.e(TAG, "Error while trying to delete all locations from the database.");

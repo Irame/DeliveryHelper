@@ -107,7 +107,7 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
                         @Override
                         public void onClick(View v) {
                             LocationModel loc = removeItem(selectedItemPosition);
-                            DatabaseHelper.getInstance(context).deleteLocation(loc);
+                            DatabaseHelper.getInstance(context).deleteRouteLocation(loc);
                             selectedItemPosition = -1;
                             notifyDataSetChanged();
                         }
@@ -129,7 +129,7 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
                         public void onClick(View v) {
                             LocationModel loc = removeItem(selectedItemPosition);
                             loc.state = LocationModel.State.DELIVERED;
-                            DatabaseHelper.getInstance(context).addOrUpdateLocation(loc);
+                            DatabaseHelper.getInstance(context).updateRouteLocation(loc);
                             addItem(loc);
                         }
                     });

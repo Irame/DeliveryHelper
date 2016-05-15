@@ -48,7 +48,7 @@ public class RouteListAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        return position;
+        return routes.get(position).id;
     }
 
     @Override

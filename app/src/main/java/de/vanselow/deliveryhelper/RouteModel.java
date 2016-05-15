@@ -16,6 +16,13 @@ public class RouteModel implements Parcelable {
     public long date;
     public ArrayList<LocationModel> locations;
 
+    public RouteModel(long id, String name, long date) {
+        this.id = id;
+        this.name = name;
+        this.date = date;
+        this.locations = new ArrayList<>();
+    }
+
     public RouteModel(String name, long date) {
         this.id = -1;
         this.name = name;
