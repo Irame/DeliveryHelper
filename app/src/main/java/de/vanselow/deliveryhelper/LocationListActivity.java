@@ -1,7 +1,6 @@
 package de.vanselow.deliveryhelper;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.support.v7.app.AppCompatActivity;
@@ -30,60 +29,51 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.vanselow.deliveryhelper.googleapi.RequestClient;
-import pl.com.salsoft.sqlitestudioremote.SQLiteStudioService;
+import de.vanselow.deliveryhelper.utils.DatabaseHelper;
+import de.vanselow.deliveryhelper.utils.GeoLocationCache;
 
-public class MainActivity extends AppCompatActivity {
+public class LocationListActivity extends AppCompatActivity {
     static final int ADD_LOCATION_REQUEST = 1;
 
-    private LocationCache locationCache;
-    private LocationAdapter locationAdapter;
+    private GeoLocationCache geoLocationCache;
+    private LocationListAdapter locationListAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_location_list);
 
-        // for external sqlite browser
-        SQLiteStudioService.instance().start(this);
+        geoLocationCache = new GeoLocationCache(this);
 
-        locationCache = new LocationCache(this);
-
-        ArrayList<DeliveryLocationModel> locationList = null;
+        ArrayList<LocationModel> locationList = null;
         if (savedInstanceState != null) {
             locationList = savedInstanceState.getParcelableArrayList("locations");
         }
         if (locationList == null) {
-            locationList = LocationsDatabaseHelper.getInstance(this).getAllLocations();
+            locationList = DatabaseHelper.getInstance(this).getAllLocations();
         }
-        locationAdapter = new LocationAdapter(this, locationList);
-        ListView locationListView = (ListView) findViewById(R.id.locationList);
+        locationListAdapter = new LocationListAdapter(this, locationList);
+        ListView locationListView = (ListView) findViewById(R.id.location_list);
         assert locationListView != null;
-        locationListView.setAdapter(locationAdapter);
+        locationListView.setAdapter(locationListAdapter);
 
         locationListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (locationAdapter.selectedItemPosition == position)
-                    locationAdapter.selectedItemPosition = -1;
+                if (locationListAdapter.selectedItemPosition == position)
+                    locationListAdapter.selectedItemPosition = -1;
                 else
-                    locationAdapter.selectedItemPosition = position;
+                    locationListAdapter.selectedItemPosition = position;
 
-                locationAdapter.notifyDataSetChanged();
+                locationListAdapter.notifyDataSetChanged();
             }
         });
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // for external sqlite browser
-        SQLiteStudioService.instance().stop();
-    }
-
-    @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("locations", locationAdapter.getAllValues());
+        outState.putParcelableArrayList("locations", locationListAdapter.getAllValues());
     }
 
     @Override
@@ -97,14 +87,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(final int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ADD_LOCATION_REQUEST && resultCode == Activity.RESULT_OK) {
-            DeliveryLocationModel newLocation = new DeliveryLocationModel(
+            LocationModel newLocation = new LocationModel(
                     data.getStringExtra(AddLocationActivity.NAME_RESULT_KEY),
                     (Place) data.getParcelableExtra(AddLocationActivity.ADDRESS_RESULT_KEY)){{
                 price = data.getFloatExtra(AddLocationActivity.PRICE_RESULT_KEY, 0);
                 notes = data.getStringExtra(AddLocationActivity.NOTES_RESULT_KEY);
             }};
-            LocationsDatabaseHelper.getInstance(this).addOrUpdateLocation(newLocation);
-            locationAdapter.addItem(newLocation);
+            DatabaseHelper.getInstance(this).addOrUpdateLocation(newLocation);
+            locationListAdapter.addItem(newLocation);
         }
     }
 
@@ -121,11 +111,11 @@ public class MainActivity extends AppCompatActivity {
         item.setActionView(iv);
 
         Map<String, String> params = new HashMap<>();
-        final Location location = locationCache.getBestLocation();
+        final Location location = geoLocationCache.getBestLocation();
         params.put("origin", location.getLatitude() + "," + location.getLongitude());
         params.put("destination", "Apotheke+Vanselow,Schönbornstraße+19,97440+Werneck");
         StringBuilder waypoints = new StringBuilder("optimize:true");
-        for (DeliveryLocationModel loc : locationAdapter.getValuesForSection(DeliveryLocationModel.State.OPEN)) {
+        for (LocationModel loc : locationListAdapter.getValuesForSection(LocationModel.State.OPEN)) {
             waypoints.append("|").append(loc.latitude).append(",").append(loc.longitude);
         }
         params.put("waypoints", waypoints.toString());
@@ -134,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
             protected void onPostExecute(JSONObject jsonObject) {
                 try {
                     JSONArray order = jsonObject.getJSONArray("routes").getJSONObject(0).getJSONArray("waypoint_order");
-                    ArrayList<DeliveryLocationModel> locationList = locationAdapter.getValuesForSection(DeliveryLocationModel.State.OPEN);
+                    ArrayList<LocationModel> locationList = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
 
                     if (locationList.size() != order.length())
                         return;
@@ -144,8 +134,8 @@ public class MainActivity extends AppCompatActivity {
                         orderArray[i] = order.getInt(i);
                     }
                     Collections.sort(locationList, new LocationComparator(locationList, orderArray));
-                    locationAdapter.selectedItemPosition = -1;
-                    locationAdapter.notifyDataSetChanged();
+                    locationListAdapter.selectedItemPosition = -1;
+                    locationListAdapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -155,10 +145,10 @@ public class MainActivity extends AppCompatActivity {
         }.execute("maps", "directions", params);
     }
 
-    private class LocationComparator implements Comparator<DeliveryLocationModel> {
-        private Map<DeliveryLocationModel, Integer> orderMap;
+    private class LocationComparator implements Comparator<LocationModel> {
+        private Map<LocationModel, Integer> orderMap;
 
-        LocationComparator(ArrayList<DeliveryLocationModel> origList, int[] order) {
+        LocationComparator(ArrayList<LocationModel> origList, int[] order) {
             orderMap = new HashMap<>();
             for (int i = 0; i < order.length; i++) {
                 orderMap.put(origList.get(order[i]), i);
@@ -166,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public int compare(DeliveryLocationModel lhs, DeliveryLocationModel rhs) {
+        public int compare(LocationModel lhs, LocationModel rhs) {
             return Integer.compare(orderMap.get(lhs), orderMap.get(rhs));
         }
     }

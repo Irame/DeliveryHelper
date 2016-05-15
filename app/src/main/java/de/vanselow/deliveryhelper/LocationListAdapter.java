@@ -14,14 +14,16 @@ import com.hb.views.PinnedSectionListView;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import de.vanselow.deliveryhelper.utils.DatabaseHelper;
+
 /**
  * Created by Felix on 12.05.2016.
  */
-public class LocationAdapter extends BaseAdapter implements PinnedSectionListView.PinnedSectionListAdapter {
+public class LocationListAdapter extends BaseAdapter implements PinnedSectionListView.PinnedSectionListAdapter {
     private static final int TYPE_ITEM = 0;
     private static final int TYPE_SEPERATOR = 1;
 
-    private ArrayList<ArrayList<DeliveryLocationModel>> allValues;
+    private ArrayList<ArrayList<LocationModel>> allValues;
     private ArrayList<String> sections;
 
     private LayoutInflater layoutInflater;
@@ -29,16 +31,16 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
 
     public int selectedItemPosition = -1;
 
-    public LocationAdapter(Context context, ArrayList<DeliveryLocationModel> values) {
+    public LocationListAdapter(Context context, ArrayList<LocationModel> values) {
         this.context = context;
         layoutInflater = LayoutInflater.from(context);
         allValues = new ArrayList<>();
         sections = new ArrayList<>();
-        for (DeliveryLocationModel.State state : DeliveryLocationModel.State.values()) {
-            allValues.add(new ArrayList<DeliveryLocationModel>());
+        for (LocationModel.State state : LocationModel.State.values()) {
+            allValues.add(new ArrayList<LocationModel>());
             sections.add(state.sectionText);
         }
-        for (DeliveryLocationModel dl : values) {
+        for (LocationModel dl : values) {
             allValues.get(dl.state.ordinal()).add(dl);
         }
     }
@@ -46,7 +48,7 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
     @Override
     public int getCount() {
         int count = 0;
-        for (ArrayList<DeliveryLocationModel> sectionValues : allValues) {
+        for (ArrayList<LocationModel> sectionValues : allValues) {
             count += sectionValues.size();
         }
         count += sections.size();
@@ -56,7 +58,7 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
     private ItemInfo getItemInfo(int position) {
         int i = 0;
         int sectionPos = 1;
-        for (ArrayList<DeliveryLocationModel> sectionValues : allValues) {
+        for (ArrayList<LocationModel> sectionValues : allValues) {
             int tempSectionPos = sectionPos + sectionValues.size();
             if (tempSectionPos > position) break;
             sectionPos = tempSectionPos + 1;
@@ -66,7 +68,7 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
         return new ItemInfo(i, itemSectionPos, itemSectionPos < 0);
     }
 
-    public DeliveryLocationModel removeItem(int position) {
+    public LocationModel removeItem(int position) {
         ItemInfo itemInfo = getItemInfo(position);
         return itemInfo.isSectionHeader ? null : allValues.get(itemInfo.section).remove(itemInfo.itemSectionPos);
     }
@@ -99,13 +101,13 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
         if (v == null) {
             switch (type) {
                 case TYPE_ITEM:
-                    v = layoutInflater.inflate(R.layout.location_list_row, null);
+                    v = layoutInflater.inflate(R.layout.location_list_item, null);
 
                     v.findViewById(R.id.location_list_item_delete_button).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            DeliveryLocationModel loc = removeItem(selectedItemPosition);
-                            LocationsDatabaseHelper.getInstance(context).deleteLocation(loc);
+                            LocationModel loc = removeItem(selectedItemPosition);
+                            DatabaseHelper.getInstance(context).deleteLocation(loc);
                             selectedItemPosition = -1;
                             notifyDataSetChanged();
                         }
@@ -114,7 +116,7 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
                     v.findViewById(R.id.location_list_item_nav_button).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            DeliveryLocationModel loc = (DeliveryLocationModel) getItem(selectedItemPosition);
+                            LocationModel loc = (LocationModel) getItem(selectedItemPosition);
                             Uri gmmIntentUri = Uri.parse(String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", loc.latitude, loc.longitude));
                             Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                             mapIntent.setPackage("com.google.android.apps.maps");
@@ -125,15 +127,15 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
                     v.findViewById(R.id.location_list_item_done_button).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            DeliveryLocationModel loc = removeItem(selectedItemPosition);
-                            loc.state = DeliveryLocationModel.State.DELIVERED;
-                            LocationsDatabaseHelper.getInstance(context).addOrUpdateLocation(loc);
+                            LocationModel loc = removeItem(selectedItemPosition);
+                            loc.state = LocationModel.State.DELIVERED;
+                            DatabaseHelper.getInstance(context).addOrUpdateLocation(loc);
                             addItem(loc);
                         }
                     });
                     break;
                 case TYPE_SEPERATOR:
-                    v = layoutInflater.inflate(R.layout.location_list_section_header, null);
+                    v = layoutInflater.inflate(R.layout.location_list_header, null);
                     break;
             }
 
@@ -152,7 +154,7 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
         if (p != null) {
             switch (type) {
                 case TYPE_ITEM:
-                    DeliveryLocationModel loc = (DeliveryLocationModel) p;
+                    LocationModel loc = (LocationModel) p;
 
                     TextView name = (TextView) v.findViewById(R.id.location_list_item_name_label);
                     TextView address = (TextView) v.findViewById(R.id.location_list_item_address_label);
@@ -196,19 +198,19 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
         return v;
     }
 
-    public ArrayList<DeliveryLocationModel> getValuesForSection(DeliveryLocationModel.State state) {
+    public ArrayList<LocationModel> getValuesForSection(LocationModel.State state) {
         return allValues.get(state.ordinal());
     }
 
-    public ArrayList<DeliveryLocationModel> getAllValues() {
-        ArrayList<DeliveryLocationModel> result = new ArrayList<>();
-        for (ArrayList<DeliveryLocationModel> sectionValues : allValues) {
+    public ArrayList<LocationModel> getAllValues() {
+        ArrayList<LocationModel> result = new ArrayList<>();
+        for (ArrayList<LocationModel> sectionValues : allValues) {
             result.addAll(sectionValues);
         }
         return result;
     }
 
-    public void addItem(DeliveryLocationModel dl) {
+    public void addItem(LocationModel dl) {
         allValues.get(dl.state.ordinal()).add(dl);
         notifyDataSetChanged();
     }

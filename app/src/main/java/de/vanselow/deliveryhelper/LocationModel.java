@@ -8,7 +8,7 @@ import com.google.android.gms.location.places.Place;
 /**
  * Created by Felix on 12.05.2016.
  */
-public class DeliveryLocationModel implements Parcelable {
+public class LocationModel implements Parcelable {
     public enum State {
         OPEN("Open"), DELIVERED("Delivered");
 
@@ -29,7 +29,7 @@ public class DeliveryLocationModel implements Parcelable {
     public String notes;
     public State state;
 
-    DeliveryLocationModel(String name, Place place) {
+    LocationModel(String name, Place place) {
         id = -1;
         this.name = name;
         address = place.getAddress().toString();
@@ -41,7 +41,7 @@ public class DeliveryLocationModel implements Parcelable {
         state = State.OPEN;
     }
 
-    public DeliveryLocationModel(long id, String name, String address, String placeid, double latitude, double longitude, float price, String notes, State state) {
+    public LocationModel(long id, String name, String address, String placeid, double latitude, double longitude, float price, String notes, State state) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -53,7 +53,7 @@ public class DeliveryLocationModel implements Parcelable {
         this.state = state;
     }
 
-    protected DeliveryLocationModel(Parcel in) {
+    protected LocationModel(Parcel in) {
         id = in.readLong();
         name = in.readString();
         address = in.readString();
@@ -83,15 +83,15 @@ public class DeliveryLocationModel implements Parcelable {
         return 0;
     }
 
-    public static final Creator<DeliveryLocationModel> CREATOR = new Creator<DeliveryLocationModel>() {
+    public static final Creator<LocationModel> CREATOR = new Creator<LocationModel>() {
         @Override
-        public DeliveryLocationModel createFromParcel(Parcel in) {
-            return new DeliveryLocationModel(in);
+        public LocationModel createFromParcel(Parcel in) {
+            return new LocationModel(in);
         }
 
         @Override
-        public DeliveryLocationModel[] newArray(int size) {
-            return new DeliveryLocationModel[size];
+        public LocationModel[] newArray(int size) {
+            return new LocationModel[size];
         }
     };
 }

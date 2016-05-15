@@ -1,4 +1,4 @@
-package de.vanselow.deliveryhelper;
+package de.vanselow.deliveryhelper.utils;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -9,12 +9,14 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
+import de.vanselow.deliveryhelper.LocationModel;
+
 /**
  * Created by Felix on 13.05.2016.
  */
-public class LocationsDatabaseHelper extends SQLiteOpenHelper {
-    private static final String TAG = LocationsDatabaseHelper.class.getName();
-    private static LocationsDatabaseHelper instance;
+public class DatabaseHelper extends SQLiteOpenHelper {
+    private static final String TAG = DatabaseHelper.class.getName();
+    private static DatabaseHelper instance;
 
     private static final int DATABASE_VERSION = 3;
     private static final String DATABASE_NAME = "vanselow_delivery_helper";
@@ -30,7 +32,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
     private static final String LOCATIONS_NOTES = "notes";
     private static final String LOCATIONS_STATE = "state";
 
-    private LocationsDatabaseHelper(Context context) {
+    private DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -56,14 +58,14 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public static synchronized LocationsDatabaseHelper getInstance(Context context) {
+    public static synchronized DatabaseHelper getInstance(Context context) {
         if (instance == null) {
-            instance = new LocationsDatabaseHelper(context.getApplicationContext());
+            instance = new DatabaseHelper(context.getApplicationContext());
         }
         return instance;
     }
 
-    public long addOrUpdateLocation(DeliveryLocationModel dl) {
+    public long addOrUpdateLocation(LocationModel dl) {
         SQLiteDatabase db = getWritableDatabase();
 
         db.beginTransaction();
@@ -95,13 +97,13 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
         return dl.id;
     }
 
-    public ArrayList<DeliveryLocationModel> getAllLocations() {
-        ArrayList<DeliveryLocationModel> result = new ArrayList<>();
+    public ArrayList<LocationModel> getAllLocations() {
+        ArrayList<LocationModel> result = new ArrayList<>();
         getAllLocations(result);
         return result;
     }
 
-    public void getAllLocations(ArrayList<DeliveryLocationModel> locationList) {
+    public void getAllLocations(ArrayList<LocationModel> locationList) {
         SQLiteDatabase db = getReadableDatabase();
 
         Cursor cursor = db.query(LOCATIONS_TABLE_NAME,
@@ -116,7 +118,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
         try {
             if (cursor.moveToFirst()) {
                 do {
-                    locationList.add(new DeliveryLocationModel(
+                    locationList.add(new LocationModel(
                             cursor.getLong(cursor.getColumnIndex(LOCATIONS_ID)),
                             cursor.getString(cursor.getColumnIndex(LOCATIONS_NAME)),
                             cursor.getString(cursor.getColumnIndex(LOCATIONS_ADDRESS)),
@@ -125,7 +127,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
                             cursor.getDouble(cursor.getColumnIndex(LOCATIONS_LONGITUDE)),
                             cursor.getFloat(cursor.getColumnIndex(LOCATIONS_PRICE)),
                             cursor.getString(cursor.getColumnIndex(LOCATIONS_NOTES)),
-                            DeliveryLocationModel.State.valueOf(cursor.getString(cursor.getColumnIndex(LOCATIONS_STATE)))
+                            LocationModel.State.valueOf(cursor.getString(cursor.getColumnIndex(LOCATIONS_STATE)))
                     ));
                 } while (cursor.moveToNext());
             }
@@ -138,7 +140,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void deleteLocation(DeliveryLocationModel dl) {
+    public void deleteLocation(LocationModel dl) {
         deleteLocationById(dl.id);
     }
 

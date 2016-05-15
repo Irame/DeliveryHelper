@@ -1,0 +1,66 @@
+package de.vanselow.deliveryhelper;
+
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.util.ArrayList;
+import java.util.Date;
+
+/**
+ * Created by Felix on 15.05.2016.
+ */
+public class RouteModel implements Parcelable {
+    public long id;
+    public String name;
+    public Date date;
+    public ArrayList<LocationModel> locations;
+
+    public int getOpenLocations() {
+        int count = 0;
+        for (LocationModel location : locations) {
+            if (location.state == LocationModel.State.OPEN)
+                count++;
+        }
+        return count;
+    }
+
+    public int getDeliveredLocations() {
+        int count = 0;
+        for (LocationModel location : locations) {
+            if (location.state == LocationModel.State.DELIVERED)
+                count++;
+        }
+        return count;
+    }
+
+    // Parcelable stuff
+    protected RouteModel(Parcel in) {
+        id = in.readLong();
+        name = in.readString();
+        locations = in.createTypedArrayList(LocationModel.CREATOR);
+    }
+
+    public static final Creator<RouteModel> CREATOR = new Creator<RouteModel>() {
+        @Override
+        public RouteModel createFromParcel(Parcel in) {
+            return new RouteModel(in);
+        }
+
+        @Override
+        public RouteModel[] newArray(int size) {
+            return new RouteModel[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeString(name);
+        dest.writeTypedList(locations);
+    }
+}

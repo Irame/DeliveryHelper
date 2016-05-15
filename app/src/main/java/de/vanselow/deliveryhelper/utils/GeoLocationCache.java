@@ -1,4 +1,4 @@
-package de.vanselow.deliveryhelper;
+package de.vanselow.deliveryhelper.utils;
 
 import android.Manifest;
 import android.content.Context;
@@ -12,7 +12,7 @@ import android.support.v4.app.ActivityCompat;
 /**
  * Created by Felix on 13.05.2016.
  */
-public class LocationCache {
+public class GeoLocationCache {
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 10 meters
 
@@ -22,7 +22,7 @@ public class LocationCache {
     private Location gpsLocation;
     private Location netLocation;
 
-    LocationCache(Context context) {
+    public GeoLocationCache(Context context) {
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         boolean isPermissionGranted = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -61,15 +61,15 @@ public class LocationCache {
 
 
     private class NetworkLocationListener implements LocationListener {
-        private LocationCache locationCache;
+        private GeoLocationCache geoLocationCache;
 
-        NetworkLocationListener(LocationCache locationCache){
-            this.locationCache = locationCache;
+        NetworkLocationListener(GeoLocationCache geoLocationCache){
+            this.geoLocationCache = geoLocationCache;
         }
 
         @Override
         public void onLocationChanged(Location location) {
-            locationCache.netLocation = location;
+            geoLocationCache.netLocation = location;
         }
 
         @Override
@@ -89,15 +89,15 @@ public class LocationCache {
     }
 
     private class GPSLocationLitener implements LocationListener {
-        private LocationCache locationCache;
+        private GeoLocationCache geoLocationCache;
 
-        GPSLocationLitener(LocationCache locationCache){
-            this.locationCache = locationCache;
+        GPSLocationLitener(GeoLocationCache geoLocationCache){
+            this.geoLocationCache = geoLocationCache;
         }
 
         @Override
         public void onLocationChanged(Location location) {
-            locationCache.gpsLocation = location;
+            geoLocationCache.gpsLocation = location;
         }
 
         @Override
