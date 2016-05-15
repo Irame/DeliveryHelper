@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -12,8 +13,15 @@ import java.util.Date;
 public class RouteModel implements Parcelable {
     public long id;
     public String name;
-    public Date date;
+    public long date;
     public ArrayList<LocationModel> locations;
+
+    public RouteModel(String name, long date) {
+        this.id = -1;
+        this.name = name;
+        this.date = date;
+        this.locations = new ArrayList<>();
+    }
 
     public int getOpenLocations() {
         int count = 0;
@@ -37,6 +45,7 @@ public class RouteModel implements Parcelable {
     protected RouteModel(Parcel in) {
         id = in.readLong();
         name = in.readString();
+        date = in.readLong();
         locations = in.createTypedArrayList(LocationModel.CREATOR);
     }
 
@@ -61,6 +70,7 @@ public class RouteModel implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(id);
         dest.writeString(name);
+        dest.writeLong(date);
         dest.writeTypedList(locations);
     }
 }

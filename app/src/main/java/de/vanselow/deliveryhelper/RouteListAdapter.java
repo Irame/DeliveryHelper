@@ -27,13 +27,18 @@ public class RouteListAdapter extends BaseAdapter {
         this.routes = routes;
     }
 
+    public void addItem(RouteModel route) {
+        routes.add(route);
+        notifyDataSetChanged();
+    }
+
     public ArrayList<RouteModel> getRoutes() {
         return routes;
     }
 
     @Override
     public int getCount() {
-        return 0;
+        return routes.size();
     }
 
     @Override
@@ -48,7 +53,7 @@ public class RouteListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View v = layoutInflater.inflate(R.layout.route_list_item, parent);
+        View v = layoutInflater.inflate(R.layout.route_list_item, parent, false);
 
         TextView name = (TextView) v.findViewById(R.id.route_list_item_name_label);
         TextView date = (TextView) v.findViewById(R.id.route_list_item_date_label);
