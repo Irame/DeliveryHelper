@@ -30,6 +30,7 @@ public class AddLocationActivity extends AppCompatActivity {
     public static final String NAME_RESULT_KEY = "name";
     public static final String ADDRESS_RESULT_KEY = "address";
     public static final String PRICE_RESULT_KEY = "price";
+    public static final String NOTES_RESULT_KEY = "notes";
 
     private Toast noNameOrAddressToast;
     private Place address;
@@ -90,6 +91,7 @@ public class AddLocationActivity extends AppCompatActivity {
         } catch (NumberFormatException e) {
             price = 0;
         }
+        String notes = ((EditText) findViewById(R.id.location_add_note_input)).getText().toString();
 
         if (name.isEmpty() || address == null) {
             noNameOrAddressToast.show();
@@ -99,6 +101,7 @@ public class AddLocationActivity extends AppCompatActivity {
         result.putExtra(NAME_RESULT_KEY, name);
         result.putExtra(PRICE_RESULT_KEY, price);
         result.putExtra(ADDRESS_RESULT_KEY, (PlaceImpl) address);
+        result.putExtra(NOTES_RESULT_KEY, notes);
 
         setResult(Activity.RESULT_OK, result);
         finish();

@@ -26,6 +26,7 @@ public class DeliveryLocationModel implements Parcelable {
     public double latitude;
     public double longitude;
     public float price;
+    public String notes;
     public State state;
 
     DeliveryLocationModel(String name, Place place) {
@@ -36,10 +37,11 @@ public class DeliveryLocationModel implements Parcelable {
         latitude = place.getLatLng().latitude;
         longitude = place.getLatLng().longitude;
         price = 0;
+        notes = "";
         state = State.OPEN;
     }
 
-    public DeliveryLocationModel(long id, String name, String address, String placeid, double latitude, double longitude, float price, State state) {
+    public DeliveryLocationModel(long id, String name, String address, String placeid, double latitude, double longitude, float price, String notes, State state) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -47,6 +49,7 @@ public class DeliveryLocationModel implements Parcelable {
         this.latitude = latitude;
         this.longitude = longitude;
         this.price = price;
+        this.notes = notes;
         this.state = state;
     }
 
@@ -58,6 +61,7 @@ public class DeliveryLocationModel implements Parcelable {
         latitude = in.readDouble();
         longitude = in.readDouble();
         price = in.readFloat();
+        notes = in.readString();
         state = State.valueOf(in.readString());
     }
 
@@ -70,6 +74,7 @@ public class DeliveryLocationModel implements Parcelable {
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
         dest.writeFloat(price);
+        dest.writeString(notes);
         dest.writeString(state.name());
     }
 

@@ -157,6 +157,7 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
                     TextView name = (TextView) v.findViewById(R.id.location_list_item_name_label);
                     TextView address = (TextView) v.findViewById(R.id.location_list_item_address_label);
                     TextView price = (TextView) v.findViewById(R.id.location_list_item_price_label);
+                    TextView notes = (TextView) v.findViewById(R.id.location_list_item_notes_label);
 
                     if (name != null) {
                         name.setText(loc.name);
@@ -168,6 +169,16 @@ public class LocationAdapter extends BaseAdapter implements PinnedSectionListVie
 
                     if (price != null) {
                         price.setText(String.format(Locale.GERMANY, "%.2f€", loc.price));
+                    }
+
+                    if (notes != null) {
+                        if (loc.notes.isEmpty() || selectedItemPosition != position) {
+                            notes.setVisibility(View.GONE);
+                            notes.setText(null);
+                        } else {
+                            notes.setVisibility(View.VISIBLE);
+                            notes.setText(loc.notes);
+                        }
                     }
                     break;
                 case TYPE_SEPERATOR:

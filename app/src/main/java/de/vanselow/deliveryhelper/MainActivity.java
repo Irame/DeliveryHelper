@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
                     data.getStringExtra(AddLocationActivity.NAME_RESULT_KEY),
                     (Place) data.getParcelableExtra(AddLocationActivity.ADDRESS_RESULT_KEY)){{
                 price = data.getFloatExtra(AddLocationActivity.PRICE_RESULT_KEY, 0);
+                notes = data.getStringExtra(AddLocationActivity.NOTES_RESULT_KEY);
             }};
             LocationsDatabaseHelper.getInstance(this).addOrUpdateLocation(newLocation);
             locationAdapter.addItem(newLocation);

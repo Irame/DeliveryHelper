@@ -16,7 +16,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = LocationsDatabaseHelper.class.getName();
     private static LocationsDatabaseHelper instance;
 
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static final String DATABASE_NAME = "vanselow_delivery_helper";
 
     private static final String LOCATIONS_TABLE_NAME = "locations";
@@ -27,6 +27,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
     private static final String LOCATIONS_LATITUDE = "latitude";
     private static final String LOCATIONS_LONGITUDE = "longitude";
     private static final String LOCATIONS_PRICE = "price";
+    private static final String LOCATIONS_NOTES = "notes";
     private static final String LOCATIONS_STATE = "state";
 
     private LocationsDatabaseHelper(Context context) {
@@ -43,6 +44,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
                 LOCATIONS_LATITUDE + " REAL NOT NULL, " +
                 LOCATIONS_LONGITUDE + " REAL NOT NULL, " +
                 LOCATIONS_PRICE + " REAL NOT NULL, " +
+                LOCATIONS_NOTES + " TEXT NOT NULL, " +
                 LOCATIONS_STATE + " TEXT NOT NULL )");
     }
 
@@ -73,6 +75,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
             values.put(LOCATIONS_LATITUDE, dl.latitude);
             values.put(LOCATIONS_LONGITUDE, dl.longitude);
             values.put(LOCATIONS_PRICE, dl.price);
+            values.put(LOCATIONS_NOTES, dl.notes);
             values.put(LOCATIONS_STATE, dl.state.name());
 
             if (dl.id >= 0) {
@@ -121,6 +124,7 @@ public class LocationsDatabaseHelper extends SQLiteOpenHelper {
                             cursor.getDouble(cursor.getColumnIndex(LOCATIONS_LATITUDE)),
                             cursor.getDouble(cursor.getColumnIndex(LOCATIONS_LONGITUDE)),
                             cursor.getFloat(cursor.getColumnIndex(LOCATIONS_PRICE)),
+                            cursor.getString(cursor.getColumnIndex(LOCATIONS_NOTES)),
                             DeliveryLocationModel.State.valueOf(cursor.getString(cursor.getColumnIndex(LOCATIONS_STATE)))
                     ));
                 } while (cursor.moveToNext());
