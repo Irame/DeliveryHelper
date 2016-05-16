@@ -3,7 +3,6 @@ package de.vanselow.deliveryhelper;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +16,8 @@ import com.hb.views.PinnedSectionListView;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Locale;
 
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
@@ -50,6 +51,7 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
         for (LocationModel dl : values) {
             allValues.get(dl.state.ordinal()).add(dl);
         }
+        sortDeliveredAlphabetically();
     }
 
     @Override
@@ -144,6 +146,7 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
 
     public void addItem(LocationModel dl) {
         allValues.get(dl.state.ordinal()).add(dl);
+        if (dl.state == LocationModel.State.DELIVERED) sortDeliveredAlphabetically();
         notifyDataSetChanged();
     }
 
@@ -162,6 +165,16 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
             this.itemSectionPos = itemSectionPos;
             this.isSectionHeader = isSectionHeader;
         }
+    }
+
+    public void sortDeliveredAlphabetically() {
+        ArrayList<LocationModel> deliveredLocations = allValues.get(LocationModel.State.DELIVERED.ordinal());
+        Collections.sort(deliveredLocations, new Comparator<LocationModel>() {
+            @Override
+            public int compare(LocationModel lhs, LocationModel rhs) {
+                return lhs.name.compareTo(rhs.name);
+            }
+        });
     }
 
     private interface ViewHolder {
