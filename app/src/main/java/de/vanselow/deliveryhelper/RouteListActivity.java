@@ -15,14 +15,17 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import de.vanselow.deliveryhelper.utils.CheckableGridLayout;
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 import pl.com.salsoft.sqlitestudioremote.SQLiteStudioService;
 
 public class RouteListActivity extends AppCompatActivity {
-    private static final int ADD_ROUTE_REQUEST_CODE = 1;
-    private static final int EXIT_LOC_LIST_REQUEST_CODE = 2;
+    public static final int ADD_ROUTE_REQUEST_CODE = 1;
+    public static final int EXIT_LOC_LIST_REQUEST_CODE = 2;
 
     private static final String ROUTE_LIST_KEY = "routes";
+    private static final String CHECK_MODE_KEY = "checkMode";
+    private static final String CHECKED_LIST_KEY = "checkedList";
 
     private RouteListAdapter routeListAdapter;
 
@@ -36,7 +39,6 @@ public class RouteListActivity extends AppCompatActivity {
         // for external sqlite browser
         SQLiteStudioService.instance().start(this);
 
-
         ArrayList<RouteModel> routeList = null;
         if (savedInstanceState != null) {
             routeList = savedInstanceState.getParcelableArrayList(ROUTE_LIST_KEY);
@@ -48,15 +50,6 @@ public class RouteListActivity extends AppCompatActivity {
         ListView routeListView = (ListView) findViewById(R.id.route_list);
         assert routeListView != null;
         routeListView.setAdapter(routeListAdapter);
-
-        routeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent i = new Intent(getApplicationContext(), LocationListActivity.class);
-                i.putExtra(LocationListActivity.ROUTE_ID_KEY, id);
-                startActivityForResult(i, EXIT_LOC_LIST_REQUEST_CODE);
-            }
-        });
     }
 
     @Override
@@ -79,8 +72,24 @@ public class RouteListActivity extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (routeListAdapter.isCheckMode()) {
+            menu.findItem(R.id.route_list_menu_item_add).setVisible(false);
+            menu.findItem(R.id.route_list_menu_item_remove).setVisible(true);
+        } else {
+            menu.findItem(R.id.route_list_menu_item_add).setVisible(true);
+            menu.findItem(R.id.route_list_menu_item_remove).setVisible(false);
+        }
+        return true;
+    }
+
     public void addRouteOnClick(MenuItem item) {
         startActivityForResult(new Intent(getApplicationContext(), RouteAddActivity.class), ADD_ROUTE_REQUEST_CODE);
+    }
+
+    public void removeRouteOnClick(MenuItem item) {
+        routeListAdapter.removeSelectedItems();
     }
 
     @Override
