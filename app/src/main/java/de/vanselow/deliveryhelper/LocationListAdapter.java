@@ -77,9 +77,19 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
         return new ItemInfo(i, itemSectionPos, itemSectionPos < 0);
     }
 
+    public void addItem(LocationModel dl) {
+        allValues.get(dl.state.ordinal()).add(dl);
+        if (dl.state == LocationModel.State.DELIVERED) sortDeliveredAlphabetically();
+        notifyDataSetChanged();
+    }
+
     public LocationModel removeItem(int position) {
         ItemInfo itemInfo = getItemInfo(position);
-        return itemInfo.isSectionHeader ? null : allValues.get(itemInfo.section).remove(itemInfo.itemSectionPos);
+        LocationModel removedLoc = null;
+        if (itemInfo.isSectionHeader)
+            removedLoc = allValues.get(itemInfo.section).remove(itemInfo.itemSectionPos);
+        notifyDataSetChanged();
+        return removedLoc;
     }
 
     @Override
@@ -142,12 +152,6 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
             result.addAll(sectionValues);
         }
         return result;
-    }
-
-    public void addItem(LocationModel dl) {
-        allValues.get(dl.state.ordinal()).add(dl);
-        if (dl.state == LocationModel.State.DELIVERED) sortDeliveredAlphabetically();
-        notifyDataSetChanged();
     }
 
     @Override
@@ -225,7 +229,6 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
                 LocationModel loc = removeItem(position);
                 DatabaseHelper.getInstance(v.getContext()).deleteRouteLocation(loc);
                 selectedItemPosition = -1;
-                notifyDataSetChanged();
             } else if (v.getId() == navButton.getId()) {
                 LocationModel loc = (LocationModel) getItem(position);
                 Uri gmmIntentUri = Uri.parse(String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", loc.latitude, loc.longitude));
@@ -237,7 +240,6 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
                 loc.state = LocationModel.State.DELIVERED;
                 DatabaseHelper.getInstance(v.getContext()).updateRouteLocation(loc);
                 addItem(loc);
-                notifyDataSetChanged();
             }
         }
 
