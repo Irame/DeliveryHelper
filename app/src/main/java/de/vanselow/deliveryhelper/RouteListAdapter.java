@@ -54,38 +54,49 @@ public class RouteListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View v = layoutInflater.inflate(R.layout.route_list_item, parent, false);
+        View v = convertView;
 
-        TextView name = (TextView) v.findViewById(R.id.route_list_item_name_label);
-        TextView date = (TextView) v.findViewById(R.id.route_list_item_date_label);
-        TextView open = (TextView) v.findViewById(R.id.route_list_item_open_count);
-        TextView delivered = (TextView) v.findViewById(R.id.route_list_item_delivered_count);
-        TextView totalPrice = (TextView) v.findViewById(R.id.route_list_item_total_price_label);
+        ViewHolder viewHolder;
+        if (v == null) {
+            v = layoutInflater.inflate(R.layout.route_list_item, parent, false);
+            viewHolder = new ViewHolder(v);
+            v.setTag(viewHolder);
+        } else {
+            viewHolder = (ViewHolder) v.getTag();
+        }
+        viewHolder.setup(position);
 
-        RouteModel route = (RouteModel) getItem(position);
+        return v;
+    }
 
-        if (name != null) {
-            name.setText(route.name);
+    private class ViewHolder {
+        private TextView name;
+        private TextView date;
+        private TextView open;
+        private TextView delivered;
+        private TextView totalPrice;
+
+        ViewHolder(View v) {
+            name = (TextView) v.findViewById(R.id.route_list_item_name_label);
+            date = (TextView) v.findViewById(R.id.route_list_item_date_label);
+            open = (TextView) v.findViewById(R.id.route_list_item_open_count);
+            delivered = (TextView) v.findViewById(R.id.route_list_item_delivered_count);
+            totalPrice = (TextView) v.findViewById(R.id.route_list_item_total_price_label);
         }
 
-        if (date != null) {
+        public void setup(int position) {
+            RouteModel route = (RouteModel) getItem(position);
+
+            name.setText(route.name);
+
             DateFormat dateFormat = DateFormat.getDateInstance();
             date.setText(dateFormat.format(route.date));
-        }
 
-        if (open != null) {
             open.setText(Integer.toString(route.getOpenLocations()));
-        }
-
-        if (delivered != null) {
             delivered.setText(Integer.toString(route.getDeliveredLocations()));
-        }
 
-        if (totalPrice != null) {
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
             totalPrice.setText(currencyFormat.format(route.getTotalPrice()));
         }
-
-        return v;
     }
 }
