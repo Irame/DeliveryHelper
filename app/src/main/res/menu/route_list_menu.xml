@@ -16,4 +16,12 @@
         android:onClick="removeRouteOnClick"
         android:visible="false"
         app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/route_list_menu_item_edit"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="@string/add_route"
+        android:onClick="editRouteOnClick"
+        android:visible="false"
+        app:showAsAction="always"/>
 </menu>

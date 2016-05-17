@@ -22,19 +22,35 @@ import java.util.Date;
  * Created by Felix on 15.05.2016.
  */
 public class RouteAddActivity extends AppCompatActivity {
+    public static final String ID_RESULT_KEY = "id";
     public static final String NAME_RESULT_KEY = "name";
     public static final String DATE_RESULT_KEY = "date";
 
     private static final String DATE_PICKER_TIME_KEY = "time";
     private static final int DATE_PICKER_REQUEST_CODE = 1;
 
+    private long id;
     private long date;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_route_add);
-        updateDate(Calendar.getInstance().getTimeInMillis());
+
+        Intent data = getIntent();
+        if (data != null) {
+            id = data.getLongExtra(ID_RESULT_KEY, -1);
+
+            String name = data.getStringExtra(NAME_RESULT_KEY);
+            EditText nameLabel = ((EditText) findViewById(R.id.route_add_name_input));
+            if (nameLabel != null) nameLabel.setText(name);
+
+            long time = data.getLongExtra(DATE_RESULT_KEY, Calendar.getInstance().getTimeInMillis());
+            updateDate(time);
+        } else {
+            id = -1;
+            updateDate(Calendar.getInstance().getTimeInMillis());
+        }
     }
 
     public void showDatePicker() {
@@ -68,6 +84,7 @@ public class RouteAddActivity extends AppCompatActivity {
 
         String name = ((EditText) findViewById(R.id.route_add_name_input)).getText().toString();
 
+        result.putExtra(ID_RESULT_KEY, id);
         result.putExtra(NAME_RESULT_KEY, name);
         result.putExtra(DATE_RESULT_KEY, date);
 

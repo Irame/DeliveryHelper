@@ -21,7 +21,8 @@ import pl.com.salsoft.sqlitestudioremote.SQLiteStudioService;
 
 public class RouteListActivity extends AppCompatActivity {
     public static final int ADD_ROUTE_REQUEST_CODE = 1;
-    public static final int EXIT_LOC_LIST_REQUEST_CODE = 2;
+    public static final int EDIT_ROUTE_REQUEST_CODE = 2;
+    public static final int EXIT_LOC_LIST_REQUEST_CODE = 3;
 
     private static final String ROUTE_LIST_KEY = "routes";
     private static final String CHECK_MODE_KEY = "checkMode";
@@ -81,11 +82,26 @@ public class RouteListActivity extends AppCompatActivity {
             menu.findItem(R.id.route_list_menu_item_add).setVisible(true);
             menu.findItem(R.id.route_list_menu_item_remove).setVisible(false);
         }
+        if (routeListAdapter.getSelectedCount() == 1) {
+            menu.findItem(R.id.route_list_menu_item_edit).setVisible(true);
+        } else {
+            menu.findItem(R.id.route_list_menu_item_edit).setVisible(false);
+        }
         return true;
     }
 
     public void addRouteOnClick(MenuItem item) {
         startActivityForResult(new Intent(getApplicationContext(), RouteAddActivity.class), ADD_ROUTE_REQUEST_CODE);
+    }
+
+    public void editRouteOnClick(MenuItem item) {
+        RouteModel selectedRoute = routeListAdapter.getSelectedRoutes().get(0);
+        routeListAdapter.clearSelection();
+        Intent intent = new Intent(getApplicationContext(), RouteAddActivity.class);
+        intent.putExtra(RouteAddActivity.ID_RESULT_KEY, selectedRoute.id);
+        intent.putExtra(RouteAddActivity.NAME_RESULT_KEY, selectedRoute.name);
+        intent.putExtra(RouteAddActivity.DATE_RESULT_KEY, selectedRoute.date);
+        startActivityForResult(intent, EDIT_ROUTE_REQUEST_CODE);
     }
 
     public void removeRouteOnClick(MenuItem item) {
@@ -112,6 +128,14 @@ public class RouteListActivity extends AppCompatActivity {
                         break;
                     }
                 }
+            } else if (requestCode == EDIT_ROUTE_REQUEST_CODE) {
+                long id = data.getLongExtra(RouteAddActivity.ID_RESULT_KEY, -1);
+                if (id < 0) return;
+                RouteModel updatedRoute = routeListAdapter.getItemById(id);
+                updatedRoute.name = data.getStringExtra(RouteAddActivity.NAME_RESULT_KEY);
+                updatedRoute.date = data.getLongExtra(RouteAddActivity.DATE_RESULT_KEY, Calendar.getInstance().getTimeInMillis());
+                DatabaseHelper.getInstance(this).addOrUpdateRoute(updatedRoute);
+                routeListAdapter.notifyDataSetChanged();
             }
         }
     }

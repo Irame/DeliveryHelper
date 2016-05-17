@@ -59,6 +59,16 @@ public class RouteListAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
+    public RouteModel getItemById(long id) {
+        for (int i = 0; i < routes.size(); i++) {
+            RouteModel r = routes.get(i);
+            if (r.id == id) {
+                return r;
+            }
+        }
+        return null;
+    }
+
     public ArrayList<RouteModel> getRoutes() {
         return routes;
     }
@@ -97,6 +107,25 @@ public class RouteListAdapter extends BaseAdapter {
 
     public boolean isCheckMode() {
         return checkMode;
+    }
+
+    public ArrayList<RouteModel> getSelectedRoutes() {
+        ArrayList<RouteModel> selectedRoutes = new ArrayList<>();
+        for (Integer checkedItem : checkedItems) {
+            selectedRoutes.add(routes.get(checkedItem));
+        }
+        return selectedRoutes;
+    }
+
+    public int getSelectedCount() {
+        return checkedItems.size();
+    }
+
+    public void clearSelection() {
+        checkedItems.clear();
+        checkMode = false;
+        notifyDataSetChanged();
+        context.invalidateOptionsMenu();
     }
 
     private class ViewHolder implements View.OnLongClickListener, View.OnClickListener {
@@ -140,6 +169,8 @@ public class RouteListAdapter extends BaseAdapter {
 
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
             totalPrice.setText(currencyFormat.format(route.getTotalPrice()));
+
+            view.setSelected(checkedItems.contains(position));
         }
 
         @Override
