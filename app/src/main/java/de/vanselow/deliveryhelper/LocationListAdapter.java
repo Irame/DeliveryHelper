@@ -86,7 +86,7 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
     public LocationModel removeItem(int position) {
         ItemInfo itemInfo = getItemInfo(position);
         LocationModel removedLoc = null;
-        if (itemInfo.isSectionHeader)
+        if (!itemInfo.isSectionHeader)
             removedLoc = allValues.get(itemInfo.section).remove(itemInfo.itemSectionPos);
         notifyDataSetChanged();
         return removedLoc;
