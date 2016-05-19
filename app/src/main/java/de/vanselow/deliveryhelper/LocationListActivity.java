@@ -90,12 +90,7 @@ public class LocationListActivity extends AppCompatActivity {
     protected void onActivityResult(final int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ADD_LOCATION_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            LocationModel newLocation = new LocationModel(
-                    data.getStringExtra(LocationAddActivity.NAME_RESULT_KEY),
-                    (Place) data.getParcelableExtra(LocationAddActivity.ADDRESS_RESULT_KEY)){{
-                price = data.getFloatExtra(LocationAddActivity.PRICE_RESULT_KEY, 0);
-                notes = data.getStringExtra(LocationAddActivity.NOTES_RESULT_KEY);
-            }};
+            LocationModel newLocation = data.getParcelableExtra(LocationAddActivity.LOCATION_RESULT_KEY);
             DatabaseHelper.getInstance(this).addOrUpdateRouteLocation(newLocation, routeModel.id);
             routeModel.locations.add(newLocation);
             locationListAdapter.addItem(newLocation);

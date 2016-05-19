@@ -21,27 +21,43 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.internal.PlaceImpl;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 
+import java.util.Calendar;
+
 public class LocationAddActivity extends AppCompatActivity {
     private static final String TAG = LocationAddActivity.class.getName();
 
     private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
 
-    public static final String NAME_RESULT_KEY = "name";
-    public static final String ADDRESS_RESULT_KEY = "address";
-    public static final String PRICE_RESULT_KEY = "price";
-    public static final String NOTES_RESULT_KEY = "notes";
+    public static final String LOCATION_RESULT_KEY = "location";
 
     private Toast noNameOrAddressToast;
-    private Place address;
+    private LocationModel location;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_add);
-        noNameOrAddressToast = Toast.makeText(getApplicationContext(), "No 'Name' or 'Address' given.", Toast.LENGTH_SHORT);
-        address = null;
+        noNameOrAddressToast = Toast.makeText(getApplicationContext(), R.string.no_name_or_addess_toast, Toast.LENGTH_SHORT);
 
-        EditText nameInput = (EditText) findViewById(R.id.location_add_name_input);
+        EditText nameInput = ((EditText) findViewById(R.id.location_add_name_input));
+        EditText addressLabel = ((EditText) findViewById(R.id.location_add_address_display));
+        EditText priceInput = ((EditText) findViewById(R.id.location_add_price_input));
+        EditText notesInput = ((EditText) findViewById(R.id.location_add_note_input));
+
+        Intent data = getIntent();
+        location = data != null ? (LocationModel) data.getParcelableExtra(LOCATION_RESULT_KEY) : new LocationModel();
+        if (location.hasValidId()) {
+            // Edit Location
+            if (nameInput != null) nameInput.setText(location.name);
+            if (addressLabel != null) addressLabel.setText(location.address);
+            if (priceInput != null) priceInput.setText(Float.toString(location.price));
+            if (notesInput != null) notesInput.setText(location.notes);
+
+            setTitle(R.string.edit_location);
+            Button confirmButton = (Button) findViewById(R.id.location_add_confirm_button);
+            if (confirmButton != null) confirmButton.setText(R.string.edit_location);
+        }
+
         assert nameInput != null;
         nameInput.setOnEditorActionListener(new EditText.OnEditorActionListener(){
             @Override
@@ -56,7 +72,6 @@ public class LocationAddActivity extends AppCompatActivity {
             }
         });
 
-        EditText priceInput = (EditText) findViewById(R.id.location_add_price_input);
         assert priceInput != null;
         priceInput.setOnEditorActionListener(new EditText.OnEditorActionListener(){
             @Override
@@ -88,26 +103,22 @@ public class LocationAddActivity extends AppCompatActivity {
 
         Intent result = new Intent();
         assert nameInput != null;
-        String name = nameInput.getText().toString();
-        float price;
+        location.name = nameInput.getText().toString();
         try {
             assert priceInput != null;
-            price = Float.parseFloat(priceInput.getText().toString());
+            location.price = Float.parseFloat(priceInput.getText().toString());
         } catch (NumberFormatException e) {
-            price = 0;
+            location.price = 0;
         }
         assert notesInput != null;
-        String notes = notesInput.getText().toString();
+        location.notes = notesInput.getText().toString();
 
-        if (name.isEmpty() || address == null) {
+        if (location.name.isEmpty() || location.address == null) {
             noNameOrAddressToast.show();
             return;
         }
 
-        result.putExtra(NAME_RESULT_KEY, name);
-        result.putExtra(PRICE_RESULT_KEY, price);
-        result.putExtra(ADDRESS_RESULT_KEY, (PlaceImpl) address);
-        result.putExtra(NOTES_RESULT_KEY, notes);
+        result.putExtra(LOCATION_RESULT_KEY, location);
 
         setResult(Activity.RESULT_OK, result);
         finish();
@@ -116,9 +127,7 @@ public class LocationAddActivity extends AppCompatActivity {
     public void searchForAddress(View view) {
         try {
             Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY).build(this);
-            EditText addressDisplay = (EditText) findViewById(R.id.location_add_address_display);
-            assert addressDisplay != null;
-            intent.putExtra("initial_query", addressDisplay.getText().toString());
+            intent.putExtra("initial_query", location.address);
             startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
         } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
             Log.e(TAG, "Error while setting up the search address intent.");
@@ -128,10 +137,11 @@ public class LocationAddActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                address = PlaceAutocomplete.getPlace(this, data);
+                Place place = PlaceAutocomplete.getPlace(this, data);
+                location.setPlace(place);
                 EditText addressLabel = (EditText) findViewById(R.id.location_add_address_display);
                 assert addressLabel != null;
-                addressLabel.setText(address.getAddress());
+                addressLabel.setText(location.address);
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
                 Log.i(TAG, status.getStatusMessage());
@@ -140,11 +150,5 @@ public class LocationAddActivity extends AppCompatActivity {
             assert priceInput != null;
             priceInput.requestFocus();
         }
-    }
-
-    public void clearAddressSearch(View view) {
-        EditText addressDisplay = (EditText) findViewById(R.id.location_add_address_display);
-        assert addressDisplay != null;
-        addressDisplay.getText().clear();
     }
 }

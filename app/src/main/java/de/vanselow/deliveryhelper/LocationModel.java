@@ -26,18 +26,6 @@ public class LocationModel implements Parcelable {
     public String notes;
     public State state;
 
-    LocationModel(String name, Place place) {
-        id = -1;
-        this.name = name;
-        address = place.getAddress().toString();
-        placeid = place.getId();
-        latitude = place.getLatLng().latitude;
-        longitude = place.getLatLng().longitude;
-        price = 0;
-        notes = "";
-        state = State.OPEN;
-    }
-
     public LocationModel(long id, String name, String address, String placeid, double latitude, double longitude, float price, String notes, State state) {
         this.id = id;
         this.name = name;
@@ -48,6 +36,21 @@ public class LocationModel implements Parcelable {
         this.price = price;
         this.notes = notes;
         this.state = state;
+    }
+
+    LocationModel() {
+        this(-1, null, null, null, 0, 0, 0, "", State.OPEN);
+    }
+
+    public boolean hasValidId() {
+        return id >= 0;
+    }
+
+    public void setPlace(Place place) {
+        this.address =  place.getAddress().toString();
+        this.placeid = place.getId();
+        this.latitude = place.getLatLng().latitude;
+        this.longitude = place.getLatLng().longitude;
     }
 
     protected LocationModel(Parcel in) {

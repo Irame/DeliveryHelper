@@ -72,13 +72,6 @@
                 android:focusableInTouchMode="false"
                 android:layout_weight="1" />
 
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/location_all_clear_address"
-                android:src="@drawable/abc_ic_clear_mtrl_alpha"
-                android:onClick="clearAddressSearch" />
-
         </LinearLayout>
 
 
