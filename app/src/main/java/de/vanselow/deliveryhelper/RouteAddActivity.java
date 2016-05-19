@@ -5,6 +5,7 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -14,6 +15,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -24,12 +26,15 @@ public class RouteAddActivity extends AppCompatActivity {
     private static final String DATE_PICKER_TIME_KEY = "time";
     private static final int DATE_PICKER_REQUEST_CODE = 1;
 
+    private Toast noNameToast;
     private RouteModel route;
+    private boolean doubleBackToExitPressedOnce = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_route_add);
+        noNameToast = Toast.makeText(this, R.string.no_name_toast, Toast.LENGTH_SHORT);
 
         Intent data = getIntent();
         if (data != null) route = data.getParcelableExtra(ROUTE_RESULT_KEY);
@@ -41,8 +46,6 @@ public class RouteAddActivity extends AppCompatActivity {
             updateDate(route.date);
 
             setTitle(R.string.edit_route);
-            Button confirmButton = (Button) findViewById(R.id.route_add_confirm_button);
-            if (confirmButton != null) confirmButton.setText(R.string.edit_route);
         } else {
             // Add Route
             route = new RouteModel();
@@ -76,22 +79,33 @@ public class RouteAddActivity extends AppCompatActivity {
         }
     }
 
-    private void addRouteConfirm() {
+    @Override
+    public void onBackPressed() {
         EditText nameInput = ((EditText) findViewById(R.id.route_add_name_input));
-
-        Intent result = new Intent();
 
         assert nameInput != null;
         route.name = nameInput.getText().toString();
 
-        result.putExtra(ROUTE_RESULT_KEY, route);
+        if (route.name.isEmpty()) {
+            if (doubleBackToExitPressedOnce) {
+                super.onBackPressed();
+            } else {
+                this.doubleBackToExitPressedOnce = true;
+                noNameToast.show();
 
-        setResult(Activity.RESULT_OK, result);
-        finish();
-    }
-
-    public void addRouteConfirmOnClick(View view) {
-        addRouteConfirm();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        doubleBackToExitPressedOnce = false;
+                    }
+                }, 2000);
+            }
+        } else {
+            Intent result = new Intent();
+            result.putExtra(ROUTE_RESULT_KEY, route);
+            setResult(Activity.RESULT_OK, result);
+            super.onBackPressed();
+        }
     }
 
     public static class DatePickerFragment extends DialogFragment

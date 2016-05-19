@@ -3,6 +3,7 @@ package de.vanselow.deliveryhelper;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -32,6 +33,7 @@ public class LocationAddActivity extends AppCompatActivity {
 
     private Toast noNameOrAddressToast;
     private LocationModel location;
+    private boolean doubleBackToExitPressedOnce = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +56,6 @@ public class LocationAddActivity extends AppCompatActivity {
             if (notesInput != null) notesInput.setText(location.notes);
 
             setTitle(R.string.edit_location);
-            Button confirmButton = (Button) findViewById(R.id.location_add_confirm_button);
-            if (confirmButton != null) confirmButton.setText(R.string.edit_location);
         } else {
             // Add Location
             location = new LocationModel();
@@ -76,19 +76,6 @@ public class LocationAddActivity extends AppCompatActivity {
         });
 
         assert priceInput != null;
-        priceInput.setOnEditorActionListener(new EditText.OnEditorActionListener(){
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    Button confirmButton = (Button) findViewById(R.id.location_add_confirm_button);
-                    assert confirmButton != null;
-                    confirmButton.performClick();
-                    return true;
-                }
-                return false;
-            }
-        });
-
         priceInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -99,12 +86,12 @@ public class LocationAddActivity extends AppCompatActivity {
         });
     }
 
-    public void addLocationConfirm(View view) {
+    @Override
+    public void onBackPressed() {
         EditText nameInput = ((EditText) findViewById(R.id.location_add_name_input));
         EditText priceInput = ((EditText) findViewById(R.id.location_add_price_input));
         EditText notesInput = ((EditText) findViewById(R.id.location_add_note_input));
 
-        Intent result = new Intent();
         assert nameInput != null;
         location.name = nameInput.getText().toString();
         try {
@@ -117,14 +104,25 @@ public class LocationAddActivity extends AppCompatActivity {
         location.notes = notesInput.getText().toString();
 
         if (location.name.isEmpty() || location.address == null) {
-            noNameOrAddressToast.show();
-            return;
+            if (doubleBackToExitPressedOnce) {
+                super.onBackPressed();
+            } else {
+                this.doubleBackToExitPressedOnce = true;
+                noNameOrAddressToast.show();
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        doubleBackToExitPressedOnce=false;
+                    }
+                }, 2000);
+            }
+        } else {
+            Intent result = new Intent();
+            result.putExtra(LOCATION_RESULT_KEY, location);
+            setResult(Activity.RESULT_OK, result);
+            super.onBackPressed();
         }
-
-        result.putExtra(LOCATION_RESULT_KEY, location);
-
-        setResult(Activity.RESULT_OK, result);
-        finish();
     }
 
     public void searchForAddress(View view) {

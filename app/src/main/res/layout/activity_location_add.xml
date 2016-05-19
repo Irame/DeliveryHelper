@@ -123,12 +123,4 @@
 
     </LinearLayout>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/add_location_confirm"
-        android:id="@+id/location_add_confirm_button"
-        android:layout_gravity="center_horizontal"
-        android:onClick="addLocationConfirm" />
-
 </LinearLayout>
