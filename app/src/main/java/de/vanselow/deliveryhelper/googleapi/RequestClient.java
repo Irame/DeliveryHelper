@@ -2,7 +2,6 @@ package de.vanselow.deliveryhelper.googleapi;
 
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;

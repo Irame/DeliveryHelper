@@ -1,8 +1,6 @@
 package de.vanselow.deliveryhelper;
 
-import android.content.Context;
 import android.content.Intent;
-import android.provider.ContactsContract;
 import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,16 +8,12 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.hb.views.PinnedSectionListView;
-
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import de.vanselow.deliveryhelper.utils.CheckableGridLayout;
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 
 /**

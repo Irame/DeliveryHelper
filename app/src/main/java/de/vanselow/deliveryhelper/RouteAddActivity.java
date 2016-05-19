@@ -16,7 +16,6 @@ import android.widget.TextView;
 
 import java.text.DateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 /**
  * Created by Felix on 15.05.2016.

@@ -8,14 +8,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import de.vanselow.deliveryhelper.utils.CheckableGridLayout;
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 import pl.com.salsoft.sqlitestudioremote.SQLiteStudioService;
 
