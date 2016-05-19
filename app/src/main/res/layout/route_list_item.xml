@@ -1,72 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+<com.daimajia.swipe.SwipeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingStart="@dimen/activity_horizontal_margin"
-    android:paddingEnd="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/list_vertical_margin"
-    android:paddingBottom="@dimen/list_vertical_margin"
-    android:background="@drawable/route_list_item_bg"
-    android:orientation="vertical">
+    android:id="@+id/route_list_item_swipe">
 
     <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:weightSum="1">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="@string/placeholder_routename"
-            android:id="@+id/route_list_item_name_label"
-            android:layout_weight="1" />
-
-        <TextView
+        <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="@string/placeholder_date"
-            android:id="@+id/route_list_item_date_label"
-            android:gravity="top"/>
+            android:src="@android:drawable/ic_menu_delete"
+            android:layout_gravity="center"
+            android:id="@+id/route_list_item_delete_button"
+            android:background="@android:color/holo_red_light"
+            android:adjustViewBounds="true" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@android:drawable/ic_menu_edit"
+            android:layout_gravity="center"
+            android:id="@+id/route_list_item_edit_button"
+            android:background="@android:color/holo_blue_light"
+            android:adjustViewBounds="true" />
     </LinearLayout>
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/activity_horizontal_margin"
+        android:paddingEnd="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/list_vertical_margin"
+        android:paddingBottom="@dimen/list_vertical_margin"
+        android:background="@drawable/route_list_item_bg"
+        android:orientation="vertical">
 
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_weight="1">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="@string/open_amount_format_template"
-                android:id="@+id/route_list_item_open_count"
-                android:singleLine="true" />
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/placeholder_routename"
+                android:id="@+id/route_list_item_name_label"
+                android:layout_weight="1" />
 
             <TextView
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="@string/delivered_amount_format_template"
-                android:id="@+id/route_list_item_delivered_count"
-                android:layout_marginStart="16dp"
-                android:singleLine="true" />
+                android:layout_height="match_parent"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="@string/placeholder_date"
+                android:id="@+id/route_list_item_date_label"
+                android:gravity="top"/>
         </LinearLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/placeholder_total_price"
-            android:id="@+id/route_list_item_total_price_label"
-            android:layout_gravity="end"
-            android:gravity="end"/>
-    </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-</LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_weight="1">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/open_amount_format_template"
+                    android:id="@+id/route_list_item_open_count"
+                    android:singleLine="true" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/delivered_amount_format_template"
+                    android:id="@+id/route_list_item_delivered_count"
+                    android:layout_marginStart="16dp"
+                    android:singleLine="true" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/placeholder_total_price"
+                android:id="@+id/route_list_item_total_price_label"
+                android:layout_gravity="end"
+                android:gravity="end"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</com.daimajia.swipe.SwipeLayout>

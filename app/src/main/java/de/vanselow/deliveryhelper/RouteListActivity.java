@@ -70,37 +70,8 @@ public class RouteListActivity extends AppCompatActivity {
         return true;
     }
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        if (routeListAdapter.isCheckMode()) {
-            menu.findItem(R.id.route_list_menu_item_add).setVisible(false);
-            menu.findItem(R.id.route_list_menu_item_remove).setVisible(true);
-        } else {
-            menu.findItem(R.id.route_list_menu_item_add).setVisible(true);
-            menu.findItem(R.id.route_list_menu_item_remove).setVisible(false);
-        }
-        if (routeListAdapter.getSelectedCount() == 1) {
-            menu.findItem(R.id.route_list_menu_item_edit).setVisible(true);
-        } else {
-            menu.findItem(R.id.route_list_menu_item_edit).setVisible(false);
-        }
-        return true;
-    }
-
     public void addRouteOnClick(MenuItem item) {
         startActivityForResult(new Intent(getApplicationContext(), RouteAddActivity.class), ADD_ROUTE_REQUEST_CODE);
-    }
-
-    public void editRouteOnClick(MenuItem item) {
-        RouteModel selectedRoute = routeListAdapter.getSelectedRoutes().get(0);
-        routeListAdapter.clearSelection();
-        Intent intent = new Intent(getApplicationContext(), RouteAddActivity.class);
-        intent.putExtra(RouteAddActivity.ROUTE_RESULT_KEY, selectedRoute);
-        startActivityForResult(intent, EDIT_ROUTE_REQUEST_CODE);
-    }
-
-    public void removeRouteOnClick(MenuItem item) {
-        routeListAdapter.removeSelectedItems();
     }
 
     @Override
