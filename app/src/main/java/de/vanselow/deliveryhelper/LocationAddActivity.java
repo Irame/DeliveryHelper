@@ -45,8 +45,8 @@ public class LocationAddActivity extends AppCompatActivity {
         EditText notesInput = ((EditText) findViewById(R.id.location_add_note_input));
 
         Intent data = getIntent();
-        location = data != null ? (LocationModel) data.getParcelableExtra(LOCATION_RESULT_KEY) : new LocationModel();
-        if (location.hasValidId()) {
+        if (data != null) location = data.getParcelableExtra(LOCATION_RESULT_KEY);
+        if (location != null && location.hasValidId()) {
             // Edit Location
             if (nameInput != null) nameInput.setText(location.name);
             if (addressLabel != null) addressLabel.setText(location.address);
@@ -56,6 +56,9 @@ public class LocationAddActivity extends AppCompatActivity {
             setTitle(R.string.edit_location);
             Button confirmButton = (Button) findViewById(R.id.location_add_confirm_button);
             if (confirmButton != null) confirmButton.setText(R.string.edit_location);
+        } else {
+            // Add Location
+            location = new LocationModel();
         }
 
         assert nameInput != null;

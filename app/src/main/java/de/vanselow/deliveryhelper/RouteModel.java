@@ -18,12 +18,8 @@ public class RouteModel implements Parcelable {
         this.locations = new ArrayList<>();
     }
 
-    public RouteModel(String name, long date) {
-        this(-1, name, date);
-    }
-
     public RouteModel() {
-        this(null, 0);
+        this(-1, null, 0);
     }
 
     public boolean hasValidId() {

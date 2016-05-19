@@ -32,8 +32,8 @@ public class RouteAddActivity extends AppCompatActivity {
         setContentView(R.layout.activity_route_add);
 
         Intent data = getIntent();
-        route = data != null ? (RouteModel) data.getParcelableExtra(ROUTE_RESULT_KEY) : new RouteModel();
-        if (route.hasValidId()) {
+        if (data != null) route = data.getParcelableExtra(ROUTE_RESULT_KEY);
+        if (route != null && route.hasValidId()) {
             // Edit Route
             EditText nameLabel = ((EditText) findViewById(R.id.route_add_name_input));
             if (nameLabel != null) nameLabel.setText(route.name);
@@ -45,6 +45,7 @@ public class RouteAddActivity extends AppCompatActivity {
             if (confirmButton != null) confirmButton.setText(R.string.edit_route);
         } else {
             // Add Route
+            route = new RouteModel();
             updateDate(Calendar.getInstance().getTimeInMillis());
         }
     }
