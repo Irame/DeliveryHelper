@@ -19,10 +19,23 @@ public class RouteModel implements Parcelable {
     }
 
     public RouteModel(String name, long date) {
-        this.id = -1;
-        this.name = name;
-        this.date = date;
-        this.locations = new ArrayList<>();
+        this(-1, name, date);
+    }
+
+    public RouteModel() {
+        this(null, 0);
+    }
+
+    public boolean hasValidId() {
+        return id >= 0;
+    }
+
+    public boolean update(RouteModel route) {
+        if (id != route.id) return false;
+        name = route.name;
+        date = route.date;
+        locations = route.locations;
+        return true;
     }
 
     public float getTotalPrice() {

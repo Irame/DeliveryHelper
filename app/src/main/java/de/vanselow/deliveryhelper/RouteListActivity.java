@@ -95,9 +95,7 @@ public class RouteListActivity extends AppCompatActivity {
         RouteModel selectedRoute = routeListAdapter.getSelectedRoutes().get(0);
         routeListAdapter.clearSelection();
         Intent intent = new Intent(getApplicationContext(), RouteAddActivity.class);
-        intent.putExtra(RouteAddActivity.ID_RESULT_KEY, selectedRoute.id);
-        intent.putExtra(RouteAddActivity.NAME_RESULT_KEY, selectedRoute.name);
-        intent.putExtra(RouteAddActivity.DATE_RESULT_KEY, selectedRoute.date);
+        intent.putExtra(RouteAddActivity.ROUTE_RESULT_KEY, selectedRoute);
         startActivityForResult(intent, EDIT_ROUTE_REQUEST_CODE);
     }
 
@@ -110,30 +108,19 @@ public class RouteListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if ( resultCode == Activity.RESULT_OK) {
             if (requestCode == ADD_ROUTE_REQUEST_CODE) {
-                RouteModel newRoute = new RouteModel(
-                        data.getStringExtra(RouteAddActivity.NAME_RESULT_KEY),
-                        data.getLongExtra(RouteAddActivity.DATE_RESULT_KEY, Calendar.getInstance().getTimeInMillis())
-                );
-                DatabaseHelper.getInstance(this).addOrUpdateRoute(newRoute);
+                RouteModel newRoute = data.getParcelableExtra(RouteAddActivity.ROUTE_RESULT_KEY);
                 routeListAdapter.addItem(newRoute);
             } else if (requestCode == EXIT_LOC_LIST_REQUEST_CODE) {
-                long routeId = data.getLongExtra(LocationListActivity.ROUTE_ID_KEY, -1);
-                for (RouteModel routeModel : routeListAdapter.getRoutes()) {
-                    if (routeModel.id == routeId) {
-                        routeModel.locations = DatabaseHelper.getInstance(this).getAllRouteLocations(routeId);
-                        routeListAdapter.notifyDataSetChanged();
-                        break;
-                    }
-                }
+                RouteModel route = data.getParcelableExtra(LocationListActivity.ROUTE_KEY);
+                routeListAdapter.updateItem(route);
             } else if (requestCode == EDIT_ROUTE_REQUEST_CODE) {
-                long id = data.getLongExtra(RouteAddActivity.ID_RESULT_KEY, -1);
-                if (id < 0) return;
-                RouteModel updatedRoute = routeListAdapter.getItemById(id);
-                updatedRoute.name = data.getStringExtra(RouteAddActivity.NAME_RESULT_KEY);
-                updatedRoute.date = data.getLongExtra(RouteAddActivity.DATE_RESULT_KEY, Calendar.getInstance().getTimeInMillis());
-                DatabaseHelper.getInstance(this).addOrUpdateRoute(updatedRoute);
-                routeListAdapter.notifyDataSetChanged();
+                RouteModel updatedRoute = data.getParcelableExtra(RouteAddActivity.ROUTE_RESULT_KEY);
+                routeListAdapter.updateItem(updatedRoute);
             }
+        } else if (data != null) {
+            RouteModel route = data.getParcelableExtra(LocationListActivity.ROUTE_KEY);
+            route.locations = DatabaseHelper.getInstance(this).getAllRouteLocations(route.id);
+            routeListAdapter.updateItem(route);
         }
     }
 }

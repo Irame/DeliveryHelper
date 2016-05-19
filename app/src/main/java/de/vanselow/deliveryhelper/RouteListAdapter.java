@@ -35,7 +35,18 @@ public class RouteListAdapter extends BaseAdapter {
 
     public void addItem(RouteModel route) {
         routes.add(route);
+        DatabaseHelper.getInstance(context).addOrUpdateRoute(route);
         notifyDataSetChanged();
+    }
+
+    public void updateItem(RouteModel otherRoute) {
+        for (RouteModel route : routes) {
+            if (route.id == otherRoute.id && route.update(otherRoute)) {
+                DatabaseHelper.getInstance(context).addOrUpdateRoute(route);
+                notifyDataSetChanged();
+                break;
+            }
+        }
     }
 
     public void removeSelectedItems() {
@@ -49,16 +60,6 @@ public class RouteListAdapter extends BaseAdapter {
         checkedItems.clear();
         context.invalidateOptionsMenu();
         notifyDataSetChanged();
-    }
-
-    public RouteModel getItemById(long id) {
-        for (int i = 0; i < routes.size(); i++) {
-            RouteModel r = routes.get(i);
-            if (r.id == id) {
-                return r;
-            }
-        }
-        return null;
     }
 
     public ArrayList<RouteModel> getRoutes() {
@@ -129,7 +130,7 @@ public class RouteListAdapter extends BaseAdapter {
         private TextView delivered;
         private TextView totalPrice;
 
-        private long id;
+        private RouteModel route;
         private int position;
 
         ViewHolder(View v) {
@@ -149,7 +150,7 @@ public class RouteListAdapter extends BaseAdapter {
             this.position = position;
 
             RouteModel route = (RouteModel) getItem(position);
-            this.id = route.id;
+            this.route = route;
 
             name.setText(route.name);
 
@@ -183,7 +184,7 @@ public class RouteListAdapter extends BaseAdapter {
                 onLongClick(v);
             } else {
                 Intent i = new Intent(context.getApplicationContext(), LocationListActivity.class);
-                i.putExtra(LocationListActivity.ROUTE_ID_KEY, id);
+                i.putExtra(LocationListActivity.ROUTE_KEY, route);
                 context.startActivityForResult(i, RouteListActivity.EXIT_LOC_LIST_REQUEST_CODE);
             }
         }

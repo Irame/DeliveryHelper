@@ -19,15 +19,12 @@ import java.text.DateFormat;
 import java.util.Calendar;
 
 public class RouteAddActivity extends AppCompatActivity {
-    public static final String ID_RESULT_KEY = "id";
-    public static final String NAME_RESULT_KEY = "name";
-    public static final String DATE_RESULT_KEY = "date";
+    public static final String ROUTE_RESULT_KEY = "route";
 
     private static final String DATE_PICKER_TIME_KEY = "time";
     private static final int DATE_PICKER_REQUEST_CODE = 1;
 
-    private long id;
-    private long date;
+    private RouteModel route;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -35,15 +32,13 @@ public class RouteAddActivity extends AppCompatActivity {
         setContentView(R.layout.activity_route_add);
 
         Intent data = getIntent();
-        id = data != null ? data.getLongExtra(ID_RESULT_KEY, -1) : -1;
-        if (id >= 0) {
+        route = data != null ? (RouteModel) data.getParcelableExtra(ROUTE_RESULT_KEY) : new RouteModel();
+        if (route.hasValidId()) {
             // Edit Route
-            String name = data.getStringExtra(NAME_RESULT_KEY);
             EditText nameLabel = ((EditText) findViewById(R.id.route_add_name_input));
-            if (nameLabel != null) nameLabel.setText(name);
+            if (nameLabel != null) nameLabel.setText(route.name);
 
-            long time = data.getLongExtra(DATE_RESULT_KEY, Calendar.getInstance().getTimeInMillis());
-            updateDate(time);
+            updateDate(route.date);
 
             setTitle(R.string.edit_route);
             Button confirmButton = (Button) findViewById(R.id.route_add_confirm_button);
@@ -55,7 +50,7 @@ public class RouteAddActivity extends AppCompatActivity {
     }
 
     private void showDatePicker() {
-        DialogFragment newFragment = DatePickerFragment.newInstance(date);
+        DialogFragment newFragment = DatePickerFragment.newInstance(route.date);
         newFragment.setTargetFragment(null, DATE_PICKER_REQUEST_CODE);
         newFragment.show(getSupportFragmentManager(), "datePicker");
     }
@@ -65,7 +60,7 @@ public class RouteAddActivity extends AppCompatActivity {
     }
 
     private void updateDate(long date) {
-        this.date = date;
+        route.date = date;
         TextView dateLabel = (TextView) findViewById(R.id.route_add_date_label);
         if (dateLabel != null) {
             DateFormat dateFormat = DateFormat.getDateInstance();
@@ -86,11 +81,9 @@ public class RouteAddActivity extends AppCompatActivity {
         Intent result = new Intent();
 
         assert nameInput != null;
-        String name = nameInput.getText().toString();
+        route.name = nameInput.getText().toString();
 
-        result.putExtra(ID_RESULT_KEY, id);
-        result.putExtra(NAME_RESULT_KEY, name);
-        result.putExtra(DATE_RESULT_KEY, date);
+        result.putExtra(ROUTE_RESULT_KEY, route);
 
         setResult(Activity.RESULT_OK, result);
         finish();

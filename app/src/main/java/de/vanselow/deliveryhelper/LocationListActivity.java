@@ -33,48 +33,50 @@ import de.vanselow.deliveryhelper.utils.GeoLocationCache;
 public class LocationListActivity extends AppCompatActivity {
     public static final int ADD_LOCATION_REQUEST_CODE = 1;
 
-    public static final String ROUTE_ID_KEY = "route_id";
-    public static final String LOCATION_LIST_KEY = "locations";
+    public static final String ROUTE_KEY = "route";
 
     private GeoLocationCache geoLocationCache;
     private LocationListAdapter locationListAdapter;
-    private long routeId;
+    private RouteModel routeModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_list);
 
-        ArrayList<LocationModel> locationList = null;
         if (savedInstanceState != null) {
-            routeId = savedInstanceState.getLong(ROUTE_ID_KEY);
-            locationList = savedInstanceState.getParcelableArrayList(LOCATION_LIST_KEY);
+            routeModel = savedInstanceState.getParcelable(ROUTE_KEY);
         }
-        if (locationList == null) {
-            long rId = getIntent().getLongExtra(ROUTE_ID_KEY, -1);
-            if (rId < 0) {
-                finish();
-                return;
-            } else {
-                routeId = rId;
-                locationList = DatabaseHelper.getInstance(this).getAllRouteLocations(routeId);
-            }
+        if (routeModel == null) {
+            routeModel = getIntent().getParcelableExtra(ROUTE_KEY);
         }
-        locationListAdapter = new LocationListAdapter(this, locationList);
+        if (routeModel.id < 0) {
+            finish();
+            return;
+        }
+        locationListAdapter = new LocationListAdapter(this, routeModel.locations);
         ListView locationListView = (ListView) findViewById(R.id.location_list);
         assert locationListView != null;
         locationListView.setAdapter(locationListAdapter);
 
         geoLocationCache = new GeoLocationCache(this);
 
-        setResult(Activity.RESULT_OK, getIntent());
+        setResult(Activity.RESULT_CANCELED, getIntent());
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        Intent data = new Intent();
+        data.putExtra(ROUTE_KEY, routeModel);
+        setResult(Activity.RESULT_OK, data);
+        super.onBackPressed();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(LOCATION_LIST_KEY, locationListAdapter.getAllValues());
-        outState.putLong(ROUTE_ID_KEY, routeId);
+        outState.putParcelable(ROUTE_KEY, routeModel);
     }
 
     @Override
@@ -94,7 +96,8 @@ public class LocationListActivity extends AppCompatActivity {
                 price = data.getFloatExtra(LocationAddActivity.PRICE_RESULT_KEY, 0);
                 notes = data.getStringExtra(LocationAddActivity.NOTES_RESULT_KEY);
             }};
-            DatabaseHelper.getInstance(this).addOrUpdateRouteLocation(newLocation, routeId);
+            DatabaseHelper.getInstance(this).addOrUpdateRouteLocation(newLocation, routeModel.id);
+            routeModel.locations.add(newLocation);
             locationListAdapter.addItem(newLocation);
         }
     }
