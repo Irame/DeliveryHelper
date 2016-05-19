@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:descendantFocusability="blocksDescendants"
@@ -10,27 +10,38 @@
     android:orientation="vertical">
 
     <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_column="0"
-        android:layout_row="0"
-        android:layout_columnWeight="1">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/placeholder_name"
+                android:id="@+id/location_list_item_name_label" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="@string/placeholder_address"
+                android:id="@+id/location_list_item_address_label" />
+
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/placeholder_name"
-            android:id="@+id/location_list_item_name_label" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="@string/placeholder_address"
-            android:id="@+id/location_list_item_address_label" />
-
+            android:text="@string/placeholder_price"
+            android:id="@+id/location_list_item_price_label"
+            android:layout_gravity="center_vertical" />
     </LinearLayout>
 
     <TextView
@@ -40,30 +51,14 @@
         android:text="@string/placeholder_notes"
         android:id="@+id/location_list_item_notes_label"
         android:layout_gravity="start"
-        android:layout_column="0"
-        android:layout_row="1"
-        android:layout_columnSpan="2"
         android:padding="10dp"
         android:background="@drawable/rounded_corners_bg"
         android:layout_marginTop="5dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/placeholder_price"
-        android:id="@+id/location_list_item_price_label"
-        android:layout_column="1"
-        android:layout_row="0"
-        android:layout_gravity="center_vertical" />
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_row="2"
-        android:layout_column="0"
-        android:layout_columnSpan="2"
         android:layout_gravity="center_horizontal"
         android:id="@+id/location_list_item_button_bar">
 
@@ -108,4 +103,4 @@
             android:layout_weight="2"/>
     </LinearLayout>
 
-</GridLayout>
+</LinearLayout>
