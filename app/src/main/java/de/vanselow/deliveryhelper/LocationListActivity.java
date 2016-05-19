@@ -31,7 +31,7 @@ import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 import de.vanselow.deliveryhelper.utils.GeoLocationCache;
 
 public class LocationListActivity extends AppCompatActivity {
-    public static final int ADD_LOCATION_REQUEST = 1;
+    public static final int ADD_LOCATION_REQUEST_CODE = 1;
 
     public static final String ROUTE_ID_KEY = "route_id";
     public static final String LOCATION_LIST_KEY = "locations";
@@ -87,12 +87,12 @@ public class LocationListActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(final int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == ADD_LOCATION_REQUEST && resultCode == Activity.RESULT_OK) {
+        if (requestCode == ADD_LOCATION_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             LocationModel newLocation = new LocationModel(
-                    data.getStringExtra(AddLocationActivity.NAME_RESULT_KEY),
-                    (Place) data.getParcelableExtra(AddLocationActivity.ADDRESS_RESULT_KEY)){{
-                price = data.getFloatExtra(AddLocationActivity.PRICE_RESULT_KEY, 0);
-                notes = data.getStringExtra(AddLocationActivity.NOTES_RESULT_KEY);
+                    data.getStringExtra(LocationAddActivity.NAME_RESULT_KEY),
+                    (Place) data.getParcelableExtra(LocationAddActivity.ADDRESS_RESULT_KEY)){{
+                price = data.getFloatExtra(LocationAddActivity.PRICE_RESULT_KEY, 0);
+                notes = data.getStringExtra(LocationAddActivity.NOTES_RESULT_KEY);
             }};
             DatabaseHelper.getInstance(this).addOrUpdateRouteLocation(newLocation, routeId);
             locationListAdapter.addItem(newLocation);
@@ -100,7 +100,7 @@ public class LocationListActivity extends AppCompatActivity {
     }
 
     public void addLocationOnClick(MenuItem item) {
-        startActivityForResult(new Intent(getApplicationContext(), AddLocationActivity.class), ADD_LOCATION_REQUEST);
+        startActivityForResult(new Intent(getApplicationContext(), LocationAddActivity.class), ADD_LOCATION_REQUEST_CODE);
     }
 
     public void sortLocationsOnClick(final MenuItem item) {

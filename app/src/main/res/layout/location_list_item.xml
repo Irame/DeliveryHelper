@@ -2,11 +2,11 @@
 <GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="10dp"
     android:descendantFocusability="blocksDescendants"
-    android:paddingTop="10dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
+    android:paddingBottom="@dimen/list_vertical_margin"
+    android:paddingTop="@dimen/list_vertical_margin"
+    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
     android:orientation="vertical">
 
     <LinearLayout
@@ -21,14 +21,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="&lt;Name>"
+            android:text="@string/placeholder_name"
             android:id="@+id/location_list_item_name_label" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="&lt;Address>"
+            android:text="@string/placeholder_address"
             android:id="@+id/location_list_item_address_label" />
 
     </LinearLayout>
@@ -37,9 +37,9 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="&lt;Notes>"
+        android:text="@string/placeholder_notes"
         android:id="@+id/location_list_item_notes_label"
-        android:layout_gravity="left"
+        android:layout_gravity="start"
         android:layout_column="0"
         android:layout_row="1"
         android:layout_columnSpan="2"
@@ -51,7 +51,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="&lt;Price>"
+        android:text="@string/placeholder_price"
         android:id="@+id/location_list_item_price_label"
         android:layout_column="1"
         android:layout_row="0"
@@ -67,10 +67,10 @@
         android:layout_gravity="center_horizontal"
         android:id="@+id/location_list_item_button_bar">
 
-        <FrameLayout
+        <Space
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="2"></FrameLayout>
+            android:layout_weight="2"/>
 
         <ImageButton
             android:layout_width="45dp"
@@ -78,10 +78,10 @@
             android:id="@+id/location_list_item_delete_button"
             android:src="@android:drawable/ic_menu_delete" />
 
-        <FrameLayout
+        <Space
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="2"></FrameLayout>
+            android:layout_weight="2"/>
 
         <ImageButton
             android:layout_width="45dp"
@@ -90,10 +90,10 @@
             android:src="@android:drawable/ic_menu_directions"
             android:layout_gravity="top" />
 
-        <FrameLayout
+        <Space
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="1"></FrameLayout>
+            android:layout_weight="1"/>
 
         <ImageButton
             android:layout_width="45dp"
@@ -102,10 +102,10 @@
             android:src="@android:drawable/ic_menu_send"
             android:layout_gravity="top" />
 
-        <FrameLayout
+        <Space
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="2"></FrameLayout>
+            android:layout_weight="2"/>
     </LinearLayout>
 
 </GridLayout>

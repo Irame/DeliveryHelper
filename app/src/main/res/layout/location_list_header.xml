@@ -8,7 +8,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="&lt;Section>"
+        android:text="@string/placeholder_section"
         android:id="@+id/location_list_section_header_text"
         android:layout_gravity="center_horizontal"
         android:gravity="bottom"

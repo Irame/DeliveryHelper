@@ -14,13 +14,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Name:"
-            android:id="@+id/textView" />
+            android:text="@string/name_colon"
+            android:id="@+id/textView"
+            android:labelFor="@+id/location_add_name_input"/>
 
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/location_add_name_input"
+            android:inputType="text"
             android:singleLine="true" />
     </LinearLayout>
 
@@ -35,8 +37,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Address:"
-            android:id="@+id/textView2" />
+            android:text="@string/address_colon"
+            android:id="@+id/textView2"
+            android:labelFor="@+id/location_add_address_display"/>
 
         <LinearLayout
             android:orientation="horizontal"
@@ -55,15 +58,15 @@
                 android:src="@drawable/abc_ic_search_api_mtrl_alpha" />
 
             <EditText
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:id="@+id/location_add_address_display"
                 android:gravity="center_vertical"
                 android:onClick="searchForAddress"
-                android:editable="false"
+                android:inputType="none"
                 android:enabled="true"
-                android:hint="Search"
+                android:hint="@string/search"
                 android:singleLine="false"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
@@ -91,30 +94,31 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Price:"
-            android:id="@+id/textView3" />
+            android:text="@string/price_colon"
+            android:id="@+id/textView3"
+            android:labelFor="@+id/location_add_price_input" />
 
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/location_add_price_input"
             android:inputType="numberDecimal"
-            android:numeric="decimal"
             android:singleLine="true" />
     </LinearLayout>
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Notes:"
-            android:id="@+id/textView4" />
+            android:text="@string/notes_colon"
+            android:id="@+id/textView4"
+            android:labelFor="@+id/location_add_note_input" />
 
         <EditText
             android:layout_width="match_parent"
@@ -122,15 +126,14 @@
             android:inputType="textMultiLine"
             android:ems="10"
             android:id="@+id/location_add_note_input"
-            android:layout_gravity="center_horizontal"
-            android:scrollIndicators="right" />
+            android:layout_gravity="center_horizontal"/>
 
     </LinearLayout>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Location"
+        android:text="@string/add_location_confirm"
         android:id="@+id/location_add_confirm_button"
         android:layout_gravity="center_horizontal"
         android:onClick="addLocationConfirm" />

@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -17,9 +18,6 @@ import android.widget.TextView;
 import java.text.DateFormat;
 import java.util.Calendar;
 
-/**
- * Created by Felix on 15.05.2016.
- */
 public class RouteAddActivity extends AppCompatActivity {
     public static final String ID_RESULT_KEY = "id";
     public static final String NAME_RESULT_KEY = "name";
@@ -37,22 +35,26 @@ public class RouteAddActivity extends AppCompatActivity {
         setContentView(R.layout.activity_route_add);
 
         Intent data = getIntent();
-        if (data != null) {
-            id = data.getLongExtra(ID_RESULT_KEY, -1);
-
+        id = data != null ? data.getLongExtra(ID_RESULT_KEY, -1) : -1;
+        if (id >= 0) {
+            // Edit Route
             String name = data.getStringExtra(NAME_RESULT_KEY);
             EditText nameLabel = ((EditText) findViewById(R.id.route_add_name_input));
             if (nameLabel != null) nameLabel.setText(name);
 
             long time = data.getLongExtra(DATE_RESULT_KEY, Calendar.getInstance().getTimeInMillis());
             updateDate(time);
+
+            setTitle(R.string.edit_route);
+            Button confirmButton = (Button) findViewById(R.id.route_add_confirm_button);
+            if (confirmButton != null) confirmButton.setText(R.string.edit_route);
         } else {
-            id = -1;
+            // Add Route
             updateDate(Calendar.getInstance().getTimeInMillis());
         }
     }
 
-    public void showDatePicker() {
+    private void showDatePicker() {
         DialogFragment newFragment = DatePickerFragment.newInstance(date);
         newFragment.setTargetFragment(null, DATE_PICKER_REQUEST_CODE);
         newFragment.show(getSupportFragmentManager(), "datePicker");
@@ -79,9 +81,12 @@ public class RouteAddActivity extends AppCompatActivity {
     }
 
     private void addRouteConfirm() {
+        EditText nameInput = ((EditText) findViewById(R.id.route_add_name_input));
+
         Intent result = new Intent();
 
-        String name = ((EditText) findViewById(R.id.route_add_name_input)).getText().toString();
+        assert nameInput != null;
+        String name = nameInput.getText().toString();
 
         result.putExtra(ID_RESULT_KEY, id);
         result.putExtra(NAME_RESULT_KEY, name);

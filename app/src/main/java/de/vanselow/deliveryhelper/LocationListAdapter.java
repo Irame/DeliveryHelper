@@ -22,14 +22,11 @@ import java.util.Locale;
 
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 
-/**
- * Created by Felix on 12.05.2016.
- */
 public class LocationListAdapter extends BaseAdapter implements PinnedSectionListView.PinnedSectionListAdapter {
     private static final String TAG = LocationListAdapter.class.getName();
 
     private static final int TYPE_ITEM = 0;
-    private static final int TYPE_SEPERATOR = 1;
+    private static final int TYPE_SEPARATOR = 1;
 
     private ArrayList<ArrayList<LocationModel>> allValues;
     private ArrayList<String> sections;
@@ -110,7 +107,7 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
 
     @Override
     public int getItemViewType(int position) {
-        return getItemInfo(position).isSectionHeader ? TYPE_SEPERATOR : TYPE_ITEM;
+        return getItemInfo(position).isSectionHeader ? TYPE_SEPARATOR : TYPE_ITEM;
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -121,12 +118,12 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
             int type = getItemViewType(position);
             switch (type) {
                 case TYPE_ITEM:
-                    v = layoutInflater.inflate(R.layout.location_list_item, null);
+                    v = layoutInflater.inflate(R.layout.location_list_item, parent, false);
                     viewHolder = new ItemViewHolder(v);
                     v.setTag(viewHolder);
                     break;
-                case TYPE_SEPERATOR:
-                    v = layoutInflater.inflate(R.layout.location_list_header, null);
+                case TYPE_SEPARATOR:
+                    v = layoutInflater.inflate(R.layout.location_list_header, parent, false);
                     viewHolder = new HeaderViewHolder(v);
                     v.setTag(viewHolder);
                     break;
@@ -156,7 +153,7 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
 
     @Override
     public boolean isItemViewTypePinned(int viewType) {
-        return viewType == TYPE_SEPERATOR;
+        return viewType == TYPE_SEPARATOR;
     }
 
     private class ItemInfo {

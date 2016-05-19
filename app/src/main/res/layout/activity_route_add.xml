@@ -2,7 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:layout_marginTop="@dimen/activity_vertical_margin"
+    android:layout_marginStart="@dimen/activity_horizontal_margin"
+    android:layout_marginEnd="@dimen/activity_horizontal_margin">
 
     <LinearLayout
         android:orientation="vertical"
@@ -14,8 +16,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Name:"
-            android:id="@+id/textView5" />
+            android:text="@string/name_colon"
+            android:id="@+id/textView5"
+            android:labelFor="@+id/route_add_name_input"/>
 
         <EditText
             android:layout_width="match_parent"
@@ -33,30 +36,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Date:"
+            android:text="@string/date_colon"
             android:id="@+id/textView6" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="&lt;Date>"
+            android:text="@string/placeholder_date"
             android:id="@+id/route_add_date_label"
             android:padding="10dp"
             android:onClick="dateOnClick" />
     </LinearLayout>
 
-    <FrameLayout
+    <Space
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1">
-
-    </FrameLayout>
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Route"
+        android:text="@string/add_route_confirm"
         android:id="@+id/route_add_confirm_button"
         android:layout_gravity="center_horizontal"
         android:onClick="addRouteConfirmOnClick"/>

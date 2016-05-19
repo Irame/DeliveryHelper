@@ -12,13 +12,11 @@ import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 
-/**
- * Created by Felix on 15.05.2016.
- */
 public class RouteListAdapter extends BaseAdapter {
     private LayoutInflater layoutInflater;
     private FragmentActivity context;
@@ -158,8 +156,8 @@ public class RouteListAdapter extends BaseAdapter {
             DateFormat dateFormat = DateFormat.getDateInstance();
             date.setText(dateFormat.format(route.date));
 
-            open.setText(Integer.toString(route.getOpenLocations()));
-            delivered.setText(Integer.toString(route.getDeliveredLocations()));
+            open.setText(String.format(Locale.getDefault(), context.getString(R.string.open_amount_format_template), route.getOpenLocations()));
+            delivered.setText(String.format(Locale.getDefault(), context.getString(R.string.delivered_amount_format_template), route.getDeliveredLocations()));
 
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
             totalPrice.setText(currencyFormat.format(route.getTotalPrice()));

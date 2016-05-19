@@ -5,9 +5,6 @@ import android.os.Parcelable;
 
 import java.util.ArrayList;
 
-/**
- * Created by Felix on 15.05.2016.
- */
 public class RouteModel implements Parcelable {
     public long id;
     public String name;

@@ -7,21 +7,21 @@
         android:icon="@android:drawable/ic_input_add"
         android:title="@string/add_route"
         android:onClick="addRouteOnClick"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/route_list_menu_item_remove"
         android:icon="@android:drawable/ic_menu_delete"
-        android:title="@string/add_route"
+        android:title="@string/remove_route"
         android:onClick="removeRouteOnClick"
         android:visible="false"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/route_list_menu_item_edit"
         android:icon="@android:drawable/ic_menu_edit"
-        android:title="@string/add_route"
+        android:title="@string/edit_route"
         android:onClick="editRouteOnClick"
         android:visible="false"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom"/>
 </menu>

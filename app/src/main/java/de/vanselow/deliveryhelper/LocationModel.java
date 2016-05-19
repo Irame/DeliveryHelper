@@ -5,9 +5,6 @@ import android.os.Parcelable;
 
 import com.google.android.gms.location.places.Place;
 
-/**
- * Created by Felix on 12.05.2016.
- */
 public class LocationModel implements Parcelable {
     public enum State {
         OPEN("Open"), DELIVERED("Delivered");

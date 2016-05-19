@@ -21,8 +21,10 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.internal.PlaceImpl;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 
-public class AddLocationActivity extends AppCompatActivity {
-    public static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
+public class LocationAddActivity extends AppCompatActivity {
+    private static final String TAG = LocationAddActivity.class.getName();
+
+    private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
 
     public static final String NAME_RESULT_KEY = "name";
     public static final String ADDRESS_RESULT_KEY = "address";
@@ -80,15 +82,22 @@ public class AddLocationActivity extends AppCompatActivity {
     }
 
     public void addLocationConfirm(View view) {
+        EditText nameInput = ((EditText) findViewById(R.id.location_add_name_input));
+        EditText priceInput = ((EditText) findViewById(R.id.location_add_price_input));
+        EditText notesInput = ((EditText) findViewById(R.id.location_add_note_input));
+
         Intent result = new Intent();
-        String name = ((TextView) findViewById(R.id.location_add_name_input)).getText().toString();
+        assert nameInput != null;
+        String name = nameInput.getText().toString();
         float price;
         try {
-            price = Float.parseFloat(((TextView) findViewById(R.id.location_add_price_input)).getText().toString());
+            assert priceInput != null;
+            price = Float.parseFloat(priceInput.getText().toString());
         } catch (NumberFormatException e) {
             price = 0;
         }
-        String notes = ((EditText) findViewById(R.id.location_add_note_input)).getText().toString();
+        assert notesInput != null;
+        String notes = notesInput.getText().toString();
 
         if (name.isEmpty() || address == null) {
             noNameOrAddressToast.show();
@@ -111,10 +120,8 @@ public class AddLocationActivity extends AppCompatActivity {
             assert addressDisplay != null;
             intent.putExtra("initial_query", addressDisplay.getText().toString());
             startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
-        } catch (GooglePlayServicesRepairableException e) {
-            e.printStackTrace();
-        } catch (GooglePlayServicesNotAvailableException e) {
-            e.printStackTrace();
+        } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
+            Log.e(TAG, "Error while setting up the search address intent.");
         }
     }
 
@@ -127,10 +134,7 @@ public class AddLocationActivity extends AppCompatActivity {
                 addressLabel.setText(address.getAddress());
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
-                // TODO: Handle the error.
-                Log.i("AddLocationActivity", status.getStatusMessage());
-            } else if (resultCode == RESULT_CANCELED) {
-                // The user canceled the operation.
+                Log.i(TAG, status.getStatusMessage());
             }
             EditText priceInput = (EditText) findViewById(R.id.location_add_price_input);
             assert priceInput != null;

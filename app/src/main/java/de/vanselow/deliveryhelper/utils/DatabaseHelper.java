@@ -12,9 +12,6 @@ import java.util.ArrayList;
 import de.vanselow.deliveryhelper.LocationModel;
 import de.vanselow.deliveryhelper.RouteModel;
 
-/**
- * Created by Felix on 13.05.2016.
- */
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = DatabaseHelper.class.getName();
     private static DatabaseHelper instance;

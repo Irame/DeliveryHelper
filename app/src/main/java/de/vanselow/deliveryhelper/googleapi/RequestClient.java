@@ -2,6 +2,7 @@ package de.vanselow.deliveryhelper.googleapi;
 
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,10 +18,9 @@ import java.util.Map;
 
 import de.vanselow.deliveryhelper.BuildConfig;
 
-/**
- * Created by Felix on 13.05.2016.
- */
 public class RequestClient extends AsyncTask<URL, Void, JSONObject> {
+    private static final String TAG = RequestClient.class.getName();
+
     private static final String APIKEY = BuildConfig.GOOGLE_MAPS_API_KEY;
 
     public AsyncTask<URL, Void, JSONObject> execute(String apiType, String apiSubtype, Map<String, String> paramsMap) {
@@ -37,7 +37,7 @@ public class RequestClient extends AsyncTask<URL, Void, JSONObject> {
             URL url = new URL(urlString);
             return execute(url);
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Malformed URL: " + urlString);
         }
         return null;
     }
@@ -58,10 +58,8 @@ public class RequestClient extends AsyncTask<URL, Void, JSONObject> {
                 total.append(line).append('\n');
             }
             result = new JSONObject(total.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
+        } catch (IOException | JSONException e) {
+            Log.e(TAG, "Error while retrieving the json object from: " + url.toString());
         }
         return result;
     }

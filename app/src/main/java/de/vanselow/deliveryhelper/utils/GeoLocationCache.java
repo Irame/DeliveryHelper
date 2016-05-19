@@ -9,9 +9,6 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 
-/**
- * Created by Felix on 13.05.2016.
- */
 public class GeoLocationCache {
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 10 meters
@@ -33,14 +30,14 @@ public class GeoLocationCache {
                 locationManager.requestLocationUpdates(
                         LocationManager.NETWORK_PROVIDER,
                         MIN_TIME_BW_UPDATES,
-                        MIN_DISTANCE_CHANGE_FOR_UPDATES, new NetworkLocationListener(this));
+                        MIN_DISTANCE_CHANGE_FOR_UPDATES, new NetworkLocationListener());
                 netLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             }
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 locationManager.requestLocationUpdates(
                         LocationManager.GPS_PROVIDER,
                         MIN_TIME_BW_UPDATES,
-                        MIN_DISTANCE_CHANGE_FOR_UPDATES, new GPSLocationLitener(this));
+                        MIN_DISTANCE_CHANGE_FOR_UPDATES, new GPSLocationListener());
                 gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             }
         }
@@ -61,15 +58,9 @@ public class GeoLocationCache {
 
 
     private class NetworkLocationListener implements LocationListener {
-        private GeoLocationCache geoLocationCache;
-
-        NetworkLocationListener(GeoLocationCache geoLocationCache){
-            this.geoLocationCache = geoLocationCache;
-        }
-
         @Override
         public void onLocationChanged(Location location) {
-            geoLocationCache.netLocation = location;
+            netLocation = location;
         }
 
         @Override
@@ -88,16 +79,10 @@ public class GeoLocationCache {
         }
     }
 
-    private class GPSLocationLitener implements LocationListener {
-        private GeoLocationCache geoLocationCache;
-
-        GPSLocationLitener(GeoLocationCache geoLocationCache){
-            this.geoLocationCache = geoLocationCache;
-        }
-
+    private class GPSLocationListener implements LocationListener {
         @Override
         public void onLocationChanged(Location location) {
-            geoLocationCache.gpsLocation = location;
+            gpsLocation = location;
         }
 
         @Override
