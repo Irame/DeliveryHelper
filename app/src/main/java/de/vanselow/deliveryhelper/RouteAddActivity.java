@@ -41,7 +41,10 @@ public class RouteAddActivity extends AppCompatActivity {
         if (route != null && route.hasValidId()) {
             // Edit Route
             EditText nameLabel = ((EditText) findViewById(R.id.route_add_name_input));
-            if (nameLabel != null) nameLabel.setText(route.name);
+            if (nameLabel != null) {
+                nameLabel.setText(route.name);
+                nameLabel.setSelection(route.name.length());
+            }
 
             updateDate(route.date);
 

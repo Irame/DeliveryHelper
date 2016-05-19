@@ -50,7 +50,10 @@ public class LocationAddActivity extends AppCompatActivity {
         if (data != null) location = data.getParcelableExtra(LOCATION_RESULT_KEY);
         if (location != null && location.hasValidId()) {
             // Edit Location
-            if (nameInput != null) nameInput.setText(location.name);
+            if (nameInput != null) {
+                nameInput.setText(location.name);
+                nameInput.setSelection(location.name.length());
+            }
             if (addressLabel != null) addressLabel.setText(location.address);
             if (priceInput != null) priceInput.setText(Float.toString(location.price));
             if (notesInput != null) notesInput.setText(location.notes);
