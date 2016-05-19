@@ -63,6 +63,7 @@ public class LocationAddActivity extends AppCompatActivity {
             // Add Location
             location = new LocationModel();
         }
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 
         assert nameInput != null;
         nameInput.setOnEditorActionListener(new EditText.OnEditorActionListener(){
