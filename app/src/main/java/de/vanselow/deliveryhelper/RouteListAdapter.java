@@ -160,6 +160,7 @@ public class RouteListAdapter extends BaseSwipeAdapter {
                 activity.startActivityForResult(intent, RouteListActivity.EDIT_ROUTE_REQUEST_CODE);
                 swipeLayout.close();
             } else if (v.getId() == deleteButton.getId()) {
+                swipeLayout.close(false);
                 removeItemById(route.id);
             }
         }

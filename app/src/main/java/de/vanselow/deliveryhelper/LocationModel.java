@@ -46,6 +46,21 @@ public class LocationModel implements Parcelable {
         return id >= 0;
     }
 
+    public boolean update(LocationModel otherLocation) {
+        if (otherLocation.id != this.id) return false;
+        this.id = otherLocation.id;
+        this.name = otherLocation.name;
+        this.address = otherLocation.address;
+        this.placeid = otherLocation.placeid;
+        this.latitude = otherLocation.latitude;
+        this.longitude = otherLocation.longitude;
+        this.price = otherLocation.price;
+        this.notes = otherLocation.notes;
+        this.state = otherLocation.state;
+        return true;
+    }
+
+
     public void setPlace(Place place) {
         this.address =  place.getAddress().toString();
         this.placeid = place.getId();

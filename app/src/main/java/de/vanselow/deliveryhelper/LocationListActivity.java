@@ -32,6 +32,7 @@ import de.vanselow.deliveryhelper.utils.GeoLocationCache;
 
 public class LocationListActivity extends AppCompatActivity {
     public static final int ADD_LOCATION_REQUEST_CODE = 1;
+    public static final int EDIT_LOCATION_REQUEST_CODE = 2;
 
     public static final String ROUTE_KEY = "route";
 
@@ -89,11 +90,18 @@ public class LocationListActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(final int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == ADD_LOCATION_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            LocationModel newLocation = data.getParcelableExtra(LocationAddActivity.LOCATION_RESULT_KEY);
-            DatabaseHelper.getInstance(this).addOrUpdateRouteLocation(newLocation, routeModel.id);
-            routeModel.locations.add(newLocation);
-            locationListAdapter.addItem(newLocation);
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == ADD_LOCATION_REQUEST_CODE) {
+                LocationModel newLocation = data.getParcelableExtra(LocationAddActivity.LOCATION_RESULT_KEY);
+                DatabaseHelper.getInstance(this).addOrUpdateRouteLocation(newLocation, routeModel.id);
+                routeModel.locations.add(newLocation);
+                locationListAdapter.addItem(newLocation);
+            } else if (requestCode == EDIT_LOCATION_REQUEST_CODE) {
+                LocationModel editedLocation = data.getParcelableExtra(LocationAddActivity.LOCATION_RESULT_KEY);
+                LocationModel updatedLocation = locationListAdapter.updateItem(editedLocation);
+                if (updatedLocation != null)
+                    DatabaseHelper.getInstance(this).addOrUpdateRouteLocation(updatedLocation, routeModel.id);
+            }
         }
     }
 
@@ -133,7 +141,6 @@ public class LocationListActivity extends AppCompatActivity {
                         orderArray[i] = order.getInt(i);
                     }
                     Collections.sort(locationList, new LocationComparator(locationList, orderArray));
-                    locationListAdapter.selectedItemPosition = -1;
                     locationListAdapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     e.printStackTrace();

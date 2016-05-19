@@ -1,106 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+<com.daimajia.swipe.SwipeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:descendantFocusability="blocksDescendants"
-    android:paddingBottom="@dimen/list_vertical_margin"
-    android:paddingTop="@dimen/list_vertical_margin"
-    android:paddingStart="@dimen/activity_horizontal_margin"
-    android:paddingEnd="@dimen/activity_horizontal_margin"
-    android:orientation="vertical">
+    android:id="@+id/location_list_item_swipe">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:weightSum="1">
+
+        <ImageButton
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:src="@android:drawable/ic_menu_delete"
+            android:layout_gravity="center"
+            android:id="@+id/location_list_item_delete_button"
+            android:background="@android:color/holo_red_light" />
+
+        <ImageButton
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:src="@android:drawable/ic_menu_edit"
+            android:layout_gravity="center"
+            android:id="@+id/location_list_item_edit_button"
+            android:background="@android:color/holo_blue_light" />
+
+        <ImageButton
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:src="@android:drawable/ic_menu_agenda"
+            android:layout_gravity="center"
+            android:id="@+id/location_list_item_check_button"
+            android:background="@android:color/holo_green_light" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:descendantFocusability="blocksDescendants"
+        android:paddingBottom="@dimen/list_vertical_margin"
+        android:paddingTop="@dimen/list_vertical_margin"
+        android:paddingStart="@dimen/activity_horizontal_margin"
+        android:paddingEnd="@dimen/activity_horizontal_margin"
+        android:orientation="vertical">
 
         <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/placeholder_name"
+                    android:id="@+id/location_list_item_name_label" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/placeholder_address"
+                    android:id="@+id/location_list_item_address_label" />
+
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="@string/placeholder_name"
-                android:id="@+id/location_list_item_name_label" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="@string/placeholder_address"
-                android:id="@+id/location_list_item_address_label" />
-
+                android:text="@string/placeholder_price"
+                android:id="@+id/location_list_item_price_label"
+                android:layout_gravity="center_vertical" />
         </LinearLayout>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/placeholder_price"
-            android:id="@+id/location_list_item_price_label"
-            android:layout_gravity="center_vertical" />
+            android:text="@string/placeholder_notes"
+            android:id="@+id/location_list_item_notes_label"
+            android:layout_gravity="start"
+            android:padding="10dp"
+            android:background="@drawable/rounded_corners_bg"
+            android:layout_marginTop="5dp" />
     </LinearLayout>
-
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/placeholder_notes"
-        android:id="@+id/location_list_item_notes_label"
-        android:layout_gravity="start"
-        android:padding="10dp"
-        android:background="@drawable/rounded_corners_bg"
-        android:layout_marginTop="5dp" />
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center_horizontal"
-        android:id="@+id/location_list_item_button_bar">
-
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="2"/>
-
-        <ImageButton
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:id="@+id/location_list_item_delete_button"
-            android:src="@android:drawable/ic_menu_delete" />
-
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="2"/>
-
-        <ImageButton
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:id="@+id/location_list_item_nav_button"
-            android:src="@android:drawable/ic_menu_directions"
-            android:layout_gravity="top" />
-
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"/>
-
-        <ImageButton
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:id="@+id/location_list_item_done_button"
-            android:src="@android:drawable/ic_menu_send"
-            android:layout_gravity="top" />
-
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="2"/>
-    </LinearLayout>
-
-</LinearLayout>
+</com.daimajia.swipe.SwipeLayout>

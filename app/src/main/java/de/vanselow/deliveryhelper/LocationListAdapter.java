@@ -1,17 +1,18 @@
 package de.vanselow.deliveryhelper;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.daimajia.swipe.SwipeLayout;
+import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.hb.views.PinnedSectionListView;
 
 import java.text.NumberFormat;
@@ -19,10 +20,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Locale;
+import java.util.Set;
 
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 
-public class LocationListAdapter extends BaseAdapter implements PinnedSectionListView.PinnedSectionListAdapter {
+public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSectionListView.PinnedSectionListAdapter {
     private static final String TAG = LocationListAdapter.class.getName();
 
     private static final int TYPE_ITEM = 0;
@@ -30,15 +32,14 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
 
     private ArrayList<ArrayList<LocationModel>> allValues;
     private ArrayList<String> sections;
+    private long notesDisplayId;
 
     private LayoutInflater layoutInflater;
-    private Context context;
+    private FragmentActivity activity;
 
-    public int selectedItemPosition = -1;
-
-    public LocationListAdapter(Context context, ArrayList<LocationModel> values) {
-        this.context = context;
-        layoutInflater = LayoutInflater.from(context);
+    public LocationListAdapter(FragmentActivity activity, ArrayList<LocationModel> values) {
+        this.activity = activity;
+        layoutInflater = LayoutInflater.from(activity);
         allValues = new ArrayList<>();
         sections = new ArrayList<>();
         for (LocationModel.State state : LocationModel.State.values()) {
@@ -80,6 +81,18 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
         notifyDataSetChanged();
     }
 
+    public LocationModel updateItem(LocationModel otherLocation) {
+        for (ArrayList<LocationModel> sectionValues : allValues) {
+            for (LocationModel location : sectionValues) {
+                if (location.id == otherLocation.id && location.update(otherLocation)) {
+                    notifyDataSetChanged();
+                    return location;
+                }
+            }
+        }
+        return null;
+    }
+
     public LocationModel removeItem(int position) {
         ItemInfo itemInfo = getItemInfo(position);
         LocationModel removedLoc = null;
@@ -110,33 +123,41 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
         return getItemInfo(position).isSectionHeader ? TYPE_SEPARATOR : TYPE_ITEM;
     }
 
-    public View getView(int position, View convertView, ViewGroup parent) {
-        View v = convertView;
-
-        ViewHolder viewHolder;
-        if (v == null) {
-            int type = getItemViewType(position);
-            switch (type) {
-                case TYPE_ITEM:
-                    v = layoutInflater.inflate(R.layout.location_list_item, parent, false);
-                    viewHolder = new ItemViewHolder(v);
-                    v.setTag(viewHolder);
-                    break;
-                case TYPE_SEPARATOR:
-                    v = layoutInflater.inflate(R.layout.location_list_header, parent, false);
-                    viewHolder = new HeaderViewHolder(v);
-                    v.setTag(viewHolder);
-                    break;
-                default:
-                    Log.e(TAG, "Unknown Item type in location list");
-                    return null;
-            }
-        } else {
-            viewHolder = (ViewHolder) v.getTag();
+    @Override
+    public int getSwipeLayoutResourceId(int position) {
+        switch (getItemViewType(position)) {
+            case TYPE_SEPARATOR: return R.id.location_list_header_swipe;
+            case TYPE_ITEM: return R.id.location_list_item_swipe;
+            default: return -1;
         }
+    }
 
-        viewHolder.setup(position);
+    @Override
+    public View generateView(int position, ViewGroup parent) {
+        View v;
+        ViewHolder viewHolder;
+        int type = getItemViewType(position);
+        switch (type) {
+            case TYPE_ITEM:
+                v = layoutInflater.inflate(R.layout.location_list_item, parent, false);
+                viewHolder = new ItemViewHolder(v);
+                v.setTag(viewHolder);
+                break;
+            case TYPE_SEPARATOR:
+                v = layoutInflater.inflate(R.layout.location_list_header, parent, false);
+                viewHolder = new HeaderViewHolder(v);
+                v.setTag(viewHolder);
+                break;
+            default:
+                Log.e(TAG, "Unknown Item type in location list");
+                return null;
+        }
         return v;
+    }
+
+    @Override
+    public void fillValues(int position, View convertView) {
+        ((ViewHolder) convertView.getTag()).setup(position);
     }
 
     public ArrayList<LocationModel> getValuesForSection(LocationModel.State state) {
@@ -182,83 +203,106 @@ public class LocationListAdapter extends BaseAdapter implements PinnedSectionLis
         void setup(int position);
     }
 
-    private class ItemViewHolder implements View.OnClickListener, ViewHolder {
-        public View itemView;
+    private class ItemViewHolder implements View.OnClickListener, ViewHolder, View.OnLongClickListener {
+        public SwipeLayout swipeLayout;
+
+        private View surfaceView;
+
+        public ImageButton deleteButton;
+        public ImageButton editButton;
+        public ImageButton checkButton;
 
         public TextView nameLabel;
         public TextView addressLabel;
         public TextView priceLabel;
         public TextView notesLabel;
-        public LinearLayout buttonBar;
-        public ImageButton deleteButton;
-        public ImageButton navButton;
-        public ImageButton doneButton;
 
         private int position;
+        private LocationModel loc;
 
         public ItemViewHolder(View itemView) {
-            this.itemView = itemView;
+            swipeLayout = (SwipeLayout) itemView;
+            surfaceView = swipeLayout.getSurfaceView();
 
             nameLabel = (TextView) itemView.findViewById(R.id.location_list_item_name_label);
             addressLabel = (TextView) itemView.findViewById(R.id.location_list_item_address_label);
             priceLabel = (TextView) itemView.findViewById(R.id.location_list_item_price_label);
             notesLabel = (TextView) itemView.findViewById(R.id.location_list_item_notes_label);
-            buttonBar = (LinearLayout) itemView.findViewById(R.id.location_list_item_button_bar);
-            deleteButton = (ImageButton) itemView.findViewById(R.id.location_list_item_delete_button);
-            navButton = (ImageButton) itemView.findViewById(R.id.location_list_item_nav_button);
-            doneButton = (ImageButton) itemView.findViewById(R.id.location_list_item_done_button);
 
-            itemView.setOnClickListener(this);
+            deleteButton = (ImageButton) itemView.findViewById(R.id.location_list_item_delete_button);
+            editButton = (ImageButton) itemView.findViewById(R.id.location_list_item_edit_button);
+            checkButton = (ImageButton) itemView.findViewById(R.id.location_list_item_check_button);
+
+            surfaceView.setOnClickListener(this);
+            surfaceView.setOnLongClickListener(this);
             deleteButton.setOnClickListener(this);
-            navButton.setOnClickListener(this);
-            doneButton.setOnClickListener(this);
+            editButton.setOnClickListener(this);
+            checkButton.setOnClickListener(this);
+
+            swipeLayout.setClickToClose(true);
         }
 
         @Override
         public void onClick(View v) {
-            if (v.getId() == itemView.getId()) {
-                if (selectedItemPosition == position)
-                    selectedItemPosition = -1;
-                else
-                    selectedItemPosition = position;
+            if (v.getId() == surfaceView.getId()) {
+                notesDisplayId = loc.id == notesDisplayId ? -1 : loc.id;
                 notifyDataSetChanged();
             } else if (v.getId() == deleteButton.getId()) {
+                swipeLayout.close(false);
                 LocationModel loc = removeItem(position);
-                DatabaseHelper.getInstance(v.getContext()).deleteRouteLocation(loc);
-                selectedItemPosition = -1;
-            } else if (v.getId() == navButton.getId()) {
-                LocationModel loc = (LocationModel) getItem(position);
-                Uri gmmIntentUri = Uri.parse(String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", loc.latitude, loc.longitude));
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                mapIntent.setPackage("com.google.android.apps.maps");
-                v.getContext().startActivity(mapIntent);
-            } else if (v.getId() == doneButton.getId()) {
+                DatabaseHelper.getInstance(activity).deleteRouteLocation(loc);
+            } else if (v.getId() == editButton.getId()) {
+                Intent intent = new Intent(activity.getApplicationContext(), LocationAddActivity.class);
+                intent.putExtra(LocationAddActivity.LOCATION_RESULT_KEY, loc);
+                activity.startActivityForResult(intent, LocationListActivity.EDIT_LOCATION_REQUEST_CODE);
+                swipeLayout.close();
+            } else if (v.getId() == checkButton.getId()) {
                 LocationModel loc = removeItem(position);
                 loc.state = LocationModel.State.DELIVERED;
-                DatabaseHelper.getInstance(v.getContext()).updateRouteLocation(loc);
+                DatabaseHelper.getInstance(activity).updateRouteLocation(loc);
                 addItem(loc);
             }
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            LocationModel loc = (LocationModel) getItem(position);
+            Uri gmmIntentUri = Uri.parse(String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", loc.latitude, loc.longitude));
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            v.getContext().startActivity(mapIntent);
+            return true;
         }
 
         public void setup(int position) {
             this.position = position;
 
             ItemInfo itemInfo = getItemInfo(position);
-            LocationModel item = allValues.get(itemInfo.section).get(itemInfo.itemSectionPos);
+            loc = allValues.get(itemInfo.section).get(itemInfo.itemSectionPos);
 
-            if (selectedItemPosition == position) {
-                buttonBar.setVisibility(View.VISIBLE);
-                notesLabel.setVisibility(item.notes.isEmpty() ? View.GONE : View.VISIBLE);
-            } else {
-                buttonBar.setVisibility(View.GONE);
-                notesLabel.setVisibility(View.GONE);
-            }
-            nameLabel.setText(item.name);
-            addressLabel.setText(item.address);
-            notesLabel.setText(item.notes);
+            nameLabel.setText(loc.name);
+            addressLabel.setText(loc.address);
 
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
-            priceLabel.setText(currencyFormat.format(item.price));
+            priceLabel.setText(currencyFormat.format(loc.price));
+
+            if (loc.notes.isEmpty()) {
+                notesLabel.setText(R.string.no_note_available);
+                notesLabel.setEnabled(false);
+            } else {
+                notesLabel.setText(loc.notes);
+                notesLabel.setEnabled(true);
+            }
+
+            if (notesDisplayId == loc.id)
+                notesLabel.setVisibility(View.VISIBLE);
+            else
+                notesLabel.setVisibility(View.GONE);
+
+            if (loc.state == LocationModel.State.DELIVERED)
+                checkButton.setVisibility(View.GONE);
+            else
+                checkButton.setVisibility(View.VISIBLE);
         }
     }
 

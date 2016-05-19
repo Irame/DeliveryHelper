@@ -1,17 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.daimajia.swipe.SwipeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#1a1d3c">
+    android:id="@+id/location_list_header_swipe">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <Space
+        android:layout_width="0pt"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:orientation="vertical" android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/placeholder_section"
-        android:id="@+id/location_list_section_header_text"
-        android:layout_gravity="center_horizontal"
-        android:gravity="bottom"
-        android:textColor="#ffffff"
-        android:height="40dp" />
-</LinearLayout>
+        android:background="#1a1d3c">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/placeholder_section"
+            android:id="@+id/location_list_section_header_text"
+            android:layout_gravity="center_horizontal"
+            android:gravity="bottom"
+            android:textColor="#ffffff"
+            android:height="40dp" />
+    </LinearLayout>
+</com.daimajia.swipe.SwipeLayout>

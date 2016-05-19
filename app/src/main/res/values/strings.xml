@@ -31,4 +31,5 @@
     <string name="locations">Locations</string>
     <string name="edit_location">Edit Location</string>
     <string name="no_name_or_addess_toast">No \'Name\' or \'Address\' given.</string>
+    <string name="no_note_available">No Note available.</string>
 </resources>
