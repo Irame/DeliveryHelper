@@ -14,10 +14,19 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    signingConfigs {
+        release {
+            storeFile file("releasekey.jks")
+            storePassword secretProps.getProperty("KeystorePassword")
+            keyAlias "DeliveryHelperKey"
+            keyPassword secretProps.getProperty("DeliveryHelperKeyPassword")
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
         buildTypes.each {
             it.buildConfigField 'String', 'GOOGLE_MAPS_API_KEY', '"' + secretProps.getProperty("GoogleMapsApiKey") + '"'
