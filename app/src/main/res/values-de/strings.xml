@@ -20,4 +20,10 @@
     <string name="routes">Routen</string>
     <string name="search">Suche</string>
     <string name="sort_locations">Orte sortieren</string>
+    <string name="delivered">Abgeliefert</string>
+    <string name="google_geo_api_key"></string>
+    <string name="no_delivered_locations">Keine abgelieferten Orte.</string>
+    <string name="no_open_locations">Keine offenen Orte.</string>
+    <string name="no_routes_existing">Keine Routen vorhanden.</string>
+    <string name="open">Offen</string>
 </resources>

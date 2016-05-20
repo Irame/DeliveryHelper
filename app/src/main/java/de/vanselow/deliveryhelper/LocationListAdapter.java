@@ -47,8 +47,8 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
         emptySectionTexts = new ArrayList<>();
         for (LocationModel.State state : LocationModel.State.values()) {
             allValues.add(new ArrayList<LocationModel>());
-            sections.add(state.sectionText);
-            emptySectionTexts.add(state.emptyListText);
+            sections.add(activity.getString(state.sectionStringId));
+            emptySectionTexts.add(activity.getString(state.emptyListStringId));
         }
         for (LocationModel dl : route.locations) {
             allValues.get(dl.state.ordinal()).add(dl);

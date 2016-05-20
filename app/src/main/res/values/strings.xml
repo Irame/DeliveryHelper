@@ -30,4 +30,9 @@
     <string name="no_note_available">No Note available.</string>
     <string name="no_name_toast">No \'Name\' given. Press BACK again to exit anyway.</string>
     <string name="placeholder_emptynote" translatable="false"><![CDATA[<EmptyNote>]]></string>
+    <string name="open">Open</string>
+    <string name="no_open_locations">No open locations.</string>
+    <string name="delivered">Delivered</string>
+    <string name="no_delivered_locations">No delivered locations.</string>
+    <string name="no_routes_existing">No Route existing.</string>
 </resources>

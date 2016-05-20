@@ -7,15 +7,15 @@ import com.google.android.gms.location.places.Place;
 
 public class LocationModel implements Parcelable {
     public enum State {
-        OPEN("Open", "No open locations."),
-        DELIVERED("Delivered", "No delivered locations.");
+        OPEN(R.string.open, R.string.no_open_locations),
+        DELIVERED(R.string.delivered, R.string.no_delivered_locations);
 
-        public final String sectionText;
-        public final String emptyListText;
+        public final int sectionStringId;
+        public final int emptyListStringId;
 
-        State(String sectionText, String emptyListText) {
-            this.sectionText = sectionText;
-            this.emptyListText = emptyListText;
+        State(int sectionStringId, int emptyListStringId) {
+            this.sectionStringId = sectionStringId;
+            this.emptyListStringId = emptyListStringId;
         }
     }
 

@@ -26,12 +26,13 @@ public class RouteListAdapter extends BaseSwipeAdapter {
     private FragmentActivity activity;
 
     private ArrayList<RouteModel> routes;
-    private String emptynoteText = "No Route existing.";
+    private String emptynoteText;
 
     public RouteListAdapter(FragmentActivity activity, ArrayList<RouteModel> routes) {
         this.activity = activity;
         layoutInflater = LayoutInflater.from(activity);
         this.routes = routes;
+        emptynoteText = activity.getString(R.string.no_routes_existing);
     }
 
     public void addItem(RouteModel route) {
