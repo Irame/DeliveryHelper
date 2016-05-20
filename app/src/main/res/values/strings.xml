@@ -33,4 +33,5 @@
     <string name="no_name_or_addess_toast">No \'Name\' or \'Address\' given. Press BACK again to exit anyway.</string>
     <string name="no_note_available">No Note available.</string>
     <string name="no_name_toast">No \'Name\' given. Press BACK again to exit anyway.</string>
+    <string name="placeholder_emptynote"><![CDATA[<EmptyNote>]]></string>
 </resources>

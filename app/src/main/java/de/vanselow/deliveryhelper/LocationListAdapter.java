@@ -8,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.daimajia.swipe.SwipeLayout;
@@ -20,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.Set;
 
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 
@@ -29,9 +27,11 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
 
     private static final int TYPE_ITEM = 0;
     private static final int TYPE_SEPARATOR = 1;
+    private static final int TYPE_EPTY_NOTE = 2;
 
     private ArrayList<ArrayList<LocationModel>> allValues;
     private ArrayList<String> sections;
+    private ArrayList<String> emptySectionTexts;
     private long notesDisplayId;
 
     private LayoutInflater layoutInflater;
@@ -42,9 +42,11 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
         layoutInflater = LayoutInflater.from(activity);
         allValues = new ArrayList<>();
         sections = new ArrayList<>();
+        emptySectionTexts = new ArrayList<>();
         for (LocationModel.State state : LocationModel.State.values()) {
             allValues.add(new ArrayList<LocationModel>());
             sections.add(state.sectionText);
+            emptySectionTexts.add(state.emptyListText);
         }
         for (LocationModel dl : values) {
             allValues.get(dl.state.ordinal()).add(dl);
@@ -56,23 +58,34 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
     public int getCount() {
         int count = 0;
         for (ArrayList<LocationModel> sectionValues : allValues) {
-            count += sectionValues.size();
+            count += Math.max(sectionValues.size(), 1);
         }
         count += sections.size();
         return count;
     }
 
     private ItemInfo getItemInfo(int position) {
-        int i = 0;
-        int sectionPos = 1;
-        for (ArrayList<LocationModel> sectionValues : allValues) {
-            int tempSectionPos = sectionPos + sectionValues.size();
-            if (tempSectionPos > position) break;
-            sectionPos = tempSectionPos + 1;
-            i++;
+        int type = -1;
+        int section = -1;
+        while (position >= 0) {
+            section++;
+            if (position == 0) {
+                type = TYPE_SEPARATOR;
+                break;
+            }
+            position--;
+            int sectionSize = allValues.get(section).size();
+            if (position == 0 && sectionSize == 0) {
+                type = TYPE_EPTY_NOTE;
+                break;
+            }
+            if (position < sectionSize) {
+                type = TYPE_ITEM;
+                break;
+            }
+            position -= Math.max(sectionSize, 1);
         }
-        int itemSectionPos = position-sectionPos;
-        return new ItemInfo(i, itemSectionPos, itemSectionPos < 0);
+        return new ItemInfo(section, position, type);
     }
 
     public void addItem(LocationModel dl) {
@@ -96,8 +109,8 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
     public LocationModel removeItem(int position) {
         ItemInfo itemInfo = getItemInfo(position);
         LocationModel removedLoc = null;
-        if (!itemInfo.isSectionHeader)
-            removedLoc = allValues.get(itemInfo.section).remove(itemInfo.itemSectionPos);
+        if (itemInfo.isItem())
+            removedLoc = allValues.get(itemInfo.section).remove(itemInfo.relativeItemPos);
         notifyDataSetChanged();
         return removedLoc;
     }
@@ -105,7 +118,16 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
     @Override
     public Object getItem(int position) {
         ItemInfo itemInfo = getItemInfo(position);
-        return itemInfo.isSectionHeader ? sections.get(itemInfo.section) : allValues.get(itemInfo.section).get(itemInfo.itemSectionPos);
+        switch (itemInfo.type) {
+            case TYPE_SEPARATOR:
+                return sections.get(itemInfo.section);
+            case TYPE_ITEM:
+                return allValues.get(itemInfo.section).get(itemInfo.relativeItemPos);
+            case TYPE_EPTY_NOTE:
+                return emptySectionTexts.get(itemInfo.section);
+            default:
+                return null;
+        }
     }
 
     @Override
@@ -115,12 +137,12 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
 
     @Override
     public int getViewTypeCount() {
-        return 2;
+        return 3;
     }
 
     @Override
     public int getItemViewType(int position) {
-        return getItemInfo(position).isSectionHeader ? TYPE_SEPARATOR : TYPE_ITEM;
+        return getItemInfo(position).type;
     }
 
     @Override
@@ -128,6 +150,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
         switch (getItemViewType(position)) {
             case TYPE_SEPARATOR: return R.id.location_list_header_swipe;
             case TYPE_ITEM: return R.id.location_list_item_swipe;
+            case TYPE_EPTY_NOTE: return R.id.list_emptynote_swipe;
             default: return -1;
         }
     }
@@ -141,17 +164,20 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
             case TYPE_ITEM:
                 v = layoutInflater.inflate(R.layout.location_list_item, parent, false);
                 viewHolder = new ItemViewHolder(v);
-                v.setTag(viewHolder);
                 break;
             case TYPE_SEPARATOR:
                 v = layoutInflater.inflate(R.layout.location_list_header, parent, false);
                 viewHolder = new HeaderViewHolder(v);
-                v.setTag(viewHolder);
+                break;
+            case TYPE_EPTY_NOTE:
+                v = layoutInflater.inflate(R.layout.list_emptynote, parent, false);
+                viewHolder = new EmptyNoteViewHolder(v);
                 break;
             default:
                 Log.e(TAG, "Unknown Item type in location list");
                 return null;
         }
+        v.setTag(viewHolder);
         return v;
     }
 
@@ -179,13 +205,25 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
 
     private class ItemInfo {
         public final int section;
-        public final int itemSectionPos;
-        public final boolean isSectionHeader;
+        public final int relativeItemPos;
+        public final int type;
 
-        public ItemInfo(int section, int itemSectionPos, boolean isSectionHeader) {
+        public ItemInfo(int section, int relativeItemPos, int type) {
             this.section = section;
-            this.itemSectionPos = itemSectionPos;
-            this.isSectionHeader = isSectionHeader;
+            this.relativeItemPos = relativeItemPos;
+            this.type = type;
+        }
+
+        public boolean isHeader() {
+            return type == TYPE_SEPARATOR;
+        }
+
+        public boolean isItem() {
+            return type == TYPE_ITEM;
+        }
+
+        public boolean isEptyNote() {
+            return type == TYPE_EPTY_NOTE;
         }
     }
 
@@ -278,7 +316,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
             this.position = position;
 
             ItemInfo itemInfo = getItemInfo(position);
-            loc = allValues.get(itemInfo.section).get(itemInfo.itemSectionPos);
+            loc = allValues.get(itemInfo.section).get(itemInfo.relativeItemPos);
 
             nameLabel.setText(loc.name);
             addressLabel.setText(loc.address);
@@ -316,6 +354,20 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
         public void setup(int position) {
             ItemInfo itemInfo = getItemInfo(position);
             sectionHeaderLabel.setText(sections.get(itemInfo.section));
+        }
+    }
+
+    private class EmptyNoteViewHolder implements ViewHolder {
+        private TextView emptynoteLabel;
+
+        public EmptyNoteViewHolder(View view) {
+            emptynoteLabel = (TextView) view.findViewById(R.id.list_emptynote_text);
+        }
+
+        @Override
+        public void setup(int position) {
+            ItemInfo itemInfo = getItemInfo(position);
+            emptynoteLabel.setText(emptySectionTexts.get(itemInfo.section));
         }
     }
 }
