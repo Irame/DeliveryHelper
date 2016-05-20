@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DeliveryHelper</string>
+    <string name="add_location">Ort hinzufügen</string>
+    <string name="add_route">Route hinzufügen</string>
+    <string name="address_colon">Adresse:</string>
+    <string name="date_colon">Datum:</string>
+    <string name="delivered_amount_format_template">Abgeliefert: %d</string>
+    <string name="edit_location">Ort bearbeiten</string>
+    <string name="edit_route">Route bearbeiten</string>
+    <string name="locations">Orte</string>
+    <string name="name_colon">Name:</string>
+    <string name="no_name_or_addess_toast">Kein \'Name\' oder keine \'Adresse\' angegeben. Drücke ZURÜCK erneut um abzubrechen.</string>
+    <string name="no_name_toast">Kein \'Name\' angegeben. Drücke ZURÜCK erneut um abzubrechen.</string>
+    <string name="no_note_available">Keine Notiz verfügbar.</string>
+    <string name="notes_colon">Notizen</string>
+    <string name="open_amount_format_template">Offen: %d</string>
+    <string name="price_colon">Preis:</string>
+    <string name="remove_route">Route entfernen</string>
+    <string name="routes">Routen</string>
+    <string name="search">Suche</string>
+    <string name="sort_locations">Orte sortieren</string>
+</resources>

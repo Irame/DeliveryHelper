@@ -8,21 +8,17 @@
     <string name="search">Search</string>
     <string name="price_colon">Price:</string>
     <string name="notes_colon">Notes:</string>
-    <string name="add_location_confirm">Add Location</string>
     <string name="date_colon">Date:</string>
-    <string name="placeholder_date"><![CDATA[<Date>]]></string>
-    <string name="add_route_confirm">Add Route</string>
-    <string name="placeholder_section"><![CDATA[<Section>]]></string>
-    <string name="placeholder_name"><![CDATA[<Name>]]></string>
-    <string name="placeholder_address"><![CDATA[<Address>]]></string>
-    <string name="placeholder_notes"><![CDATA[<Notes>]]></string>
-    <string name="placeholder_price"><![CDATA[<Price>]]></string>
-    <string name="placeholder_routename"><![CDATA[<RouteName>]]></string>
-    <string name="open_colon">Open: </string>
-    <string name="placeholder_number_open"><![CDATA[<#O>]]></string>
-    <string name="delivered_colon">Delivered: </string>
-    <string name="placeholder_number_delivered"><![CDATA[<#D>]]></string>
-    <string name="placeholder_total_price"><![CDATA[<Total€>]]></string>
+    <string name="placeholder_date" translatable="false"><![CDATA[<Date>]]></string>
+    <string name="placeholder_section" translatable="false"><![CDATA[<Section>]]></string>
+    <string name="placeholder_name" translatable="false"><![CDATA[<Name>]]></string>
+    <string name="placeholder_address" translatable="false"><![CDATA[<Address>]]></string>
+    <string name="placeholder_notes" translatable="false"><![CDATA[<Notes>]]></string>
+    <string name="placeholder_price" translatable="false"><![CDATA[<Price>]]></string>
+    <string name="placeholder_routename" translatable="false"><![CDATA[<RouteName>]]></string>
+    <string name="placeholder_number_open" translatable="false"><![CDATA[<#O>]]></string>
+    <string name="placeholder_number_delivered" translatable="false"><![CDATA[<#D>]]></string>
+    <string name="placeholder_total_price" translatable="false"><![CDATA[<Total€>]]></string>
     <string name="remove_route">Remove Route</string>
     <string name="edit_route">Edit Route</string>
     <string name="open_amount_format_template">Open: %d</string>
@@ -33,5 +29,5 @@
     <string name="no_name_or_addess_toast">No \'Name\' or \'Address\' given. Press BACK again to exit anyway.</string>
     <string name="no_note_available">No Note available.</string>
     <string name="no_name_toast">No \'Name\' given. Press BACK again to exit anyway.</string>
-    <string name="placeholder_emptynote"><![CDATA[<EmptyNote>]]></string>
+    <string name="placeholder_emptynote" translatable="false"><![CDATA[<EmptyNote>]]></string>
 </resources>
