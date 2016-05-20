@@ -12,26 +12,29 @@
         <ImageButton
             android:layout_width="60dp"
             android:layout_height="match_parent"
-            android:src="@android:drawable/ic_menu_delete"
+            android:src="@drawable/ic_list_item_remove"
             android:layout_gravity="center"
             android:id="@+id/location_list_item_delete_button"
-            android:background="@android:color/holo_red_light" />
+            android:tint="@color/colorListItemIcon"
+            android:background="@color/colorListItemRemoveIconBackground" />
 
         <ImageButton
             android:layout_width="60dp"
             android:layout_height="match_parent"
-            android:src="@android:drawable/ic_menu_edit"
+            android:src="@drawable/ic_list_item_edit"
             android:layout_gravity="center"
             android:id="@+id/location_list_item_edit_button"
-            android:background="@android:color/holo_blue_light" />
+            android:tint="@color/colorListItemIcon"
+            android:background="@color/colorListItemEditIconBackground" />
 
         <ImageButton
             android:layout_width="60dp"
             android:layout_height="match_parent"
-            android:src="@android:drawable/ic_menu_agenda"
+            android:src="@drawable/ic_list_item_check"
             android:layout_gravity="center"
             android:id="@+id/location_list_item_check_button"
-            android:background="@android:color/holo_green_light" />
+            android:tint="@color/colorListItemIcon"
+            android:background="@color/colorListItemCheckIconBackground" />
     </LinearLayout>
 
     <LinearLayout

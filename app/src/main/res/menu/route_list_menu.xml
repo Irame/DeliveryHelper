@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/route_list_menu_item_add"
-        android:icon="@android:drawable/ic_input_add"
+        android:icon="@drawable/ic_menu_add"
         android:title="@string/add_route"
         android:onClick="addRouteOnClick"
         app:showAsAction="ifRoom"/>
