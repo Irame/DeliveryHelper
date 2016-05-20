@@ -36,9 +36,11 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
 
     private LayoutInflater layoutInflater;
     private FragmentActivity activity;
+    private RouteModel routeModel;
 
-    public LocationListAdapter(FragmentActivity activity, ArrayList<LocationModel> values) {
+    public LocationListAdapter(FragmentActivity activity, RouteModel route) {
         this.activity = activity;
+        routeModel = route;
         layoutInflater = LayoutInflater.from(activity);
         allValues = new ArrayList<>();
         sections = new ArrayList<>();
@@ -48,7 +50,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
             sections.add(state.sectionText);
             emptySectionTexts.add(state.emptyListText);
         }
-        for (LocationModel dl : values) {
+        for (LocationModel dl : route.locations) {
             allValues.get(dl.state.ordinal()).add(dl);
         }
         sortDeliveredAlphabetically();
@@ -288,6 +290,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
             } else if (v.getId() == deleteButton.getId()) {
                 swipeLayout.close(false);
                 LocationModel loc = removeItem(position);
+                routeModel.locations.remove(loc);
                 DatabaseHelper.getInstance(activity).deleteRouteLocation(loc);
             } else if (v.getId() == editButton.getId()) {
                 Intent intent = new Intent(activity.getApplicationContext(), LocationAddActivity.class);

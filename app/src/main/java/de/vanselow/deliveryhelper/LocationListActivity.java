@@ -55,7 +55,7 @@ public class LocationListActivity extends AppCompatActivity {
             finish();
             return;
         }
-        locationListAdapter = new LocationListAdapter(this, routeModel.locations);
+        locationListAdapter = new LocationListAdapter(this, routeModel);
         ListView locationListView = (ListView) findViewById(R.id.location_list);
         assert locationListView != null;
         locationListView.setAdapter(locationListAdapter);
