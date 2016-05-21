@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+        android:width="60dp"
+        android:height="60dp"
+        android:viewportWidth="24.0"
+        android:viewportHeight="24.0">
+    <path
+        android:fillColor="@color/colorNavigationButtonOutside"
+        android:pathData="M12,0C5.373,0 0,5.373 0,12 0,18.627 5.373,24 12,24 18.627,24 24,18.627 24,12 24,5.373 18.627,0 12,0ZM12.507,19 L11,13 5,11.5 17,7 12.507,19Z"/>
+    <path
+        android:pathData="M17,7 L5,11.5 11,13 12.508,19 17,7Z"
+        android:fillColor="@color/colorNavigationButtonInside"/>
+</vector>

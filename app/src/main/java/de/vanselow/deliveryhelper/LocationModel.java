@@ -112,4 +112,28 @@ public class LocationModel implements Parcelable {
             return new LocationModel[size];
         }
     };
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        LocationModel that = (LocationModel) o;
+
+        if (id != that.id) return false;
+        if (Double.compare(that.latitude, latitude) != 0) return false;
+        if (Double.compare(that.longitude, longitude) != 0) return false;
+        if (Float.compare(that.price, price) != 0) return false;
+        if (!name.equals(that.name)) return false;
+        if (!address.equals(that.address)) return false;
+        if (!placeid.equals(that.placeid)) return false;
+        if (!notes.equals(that.notes)) return false;
+        return state == that.state;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (id ^ (id >>> 32));
+    }
 }

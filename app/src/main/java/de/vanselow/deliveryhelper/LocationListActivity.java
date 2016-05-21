@@ -6,6 +6,7 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -29,18 +30,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
-import de.vanselow.deliveryhelper.googleapi.RequestClient;
+import de.vanselow.deliveryhelper.googleapi.RouteInfo;
+import de.vanselow.deliveryhelper.googleapi.RouteInfoRequestClient;
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 import de.vanselow.deliveryhelper.utils.GeoLocationCache;
 
@@ -50,8 +48,10 @@ public class LocationListActivity extends AppCompatActivity {
 
     public static final String ROUTE_KEY = "route";
 
+    private static final LatLng ROUTE_END = new LatLng(49.982545, 10.097857);
+
     private MapFragment mapFragment;
-    private GeoLocationCache geoLocationCache;
+    private RouteInfoRequestClient<LocationModel> routeInfoRequestClient;
     private LocationListAdapter locationListAdapter;
     private RouteModel routeModel;
 
@@ -75,7 +75,13 @@ public class LocationListActivity extends AppCompatActivity {
         assert locationListView != null;
         locationListView.setAdapter(locationListAdapter);
 
-        geoLocationCache = new GeoLocationCache(this);
+        routeInfoRequestClient = new RouteInfoRequestClient<LocationModel>(getApplicationContext()) {
+            @Override
+            public LatLng toLatLng(LocationModel item) {
+                return new LatLng(item.latitude, item.longitude);
+            }
+        };
+        routeInfoRequestClient.setDestination(ROUTE_END);
 
         setResult(Activity.RESULT_CANCELED, getIntent());
     }
@@ -83,7 +89,7 @@ public class LocationListActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        View mapView = findViewById(R.id.location_list_map_placeholder);
+        View mapView = findViewById(R.id.location_list_map_wrapper);
         assert mapView != null;
         if (mapView.getVisibility() == View.VISIBLE) {
             hideMap();
@@ -118,9 +124,11 @@ public class LocationListActivity extends AppCompatActivity {
                 DatabaseHelper.getInstance(this).addOrUpdateRouteLocation(newLocation, routeModel.id);
                 routeModel.locations.add(newLocation);
                 locationListAdapter.addItem(newLocation);
+                routeInfoRequestClient.invalidateLatestRoute();
             } else if (requestCode == EDIT_LOCATION_REQUEST_CODE) {
                 LocationModel editedLocation = data.getParcelableExtra(LocationAddActivity.LOCATION_RESULT_KEY);
                 LocationModel updatedLocation = locationListAdapter.updateItem(editedLocation);
+                routeInfoRequestClient.invalidateLatestRoute();
                 if (updatedLocation != null)
                     DatabaseHelper.getInstance(this).addOrUpdateRouteLocation(updatedLocation, routeModel.id);
             }
@@ -132,19 +140,6 @@ public class LocationListActivity extends AppCompatActivity {
         startActivityForResult(new Intent(getApplicationContext(), LocationAddActivity.class), ADD_LOCATION_REQUEST_CODE);
     }
 
-    private void routeRequest(RequestClient requestClient) {
-        Map<String, String> params = new HashMap<>();
-        final Location location = geoLocationCache.getBestLocation();
-        params.put("origin", location.getLatitude() + "," + location.getLongitude());
-        params.put("destination", "49.982545,10.097857");
-        StringBuilder waypoints = new StringBuilder("optimize:true");
-        for (LocationModel loc : locationListAdapter.getValuesForSection(LocationModel.State.OPEN)) {
-            waypoints.append("|").append(loc.latitude).append(",").append(loc.longitude);
-        }
-        params.put("waypoints", waypoints.toString());
-        requestClient.execute("maps", "directions", params);
-    }
-
     public void sortLocationsOnClick(final MenuItem item) {
         hideMap();
         LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
@@ -154,29 +149,17 @@ public class LocationListActivity extends AppCompatActivity {
         iv.startAnimation(rotation);
         item.setActionView(iv);
 
-        routeRequest(new RequestClient() {
-            @Override
-            protected void onPostExecute(JSONObject jsonObject) {
-                try {
-                    JSONArray order = jsonObject.getJSONArray("routes").getJSONObject(0).getJSONArray("waypoint_order");
-                    ArrayList<LocationModel> locationList = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
-
-                    if (locationList.size() != order.length())
-                        return;
-
-                    int[] orderArray = new int[order.length()];
-                    for (int i = 0; i < orderArray.length; i++) {
-                        orderArray[i] = order.getInt(i);
+        final ArrayList<LocationModel> locations = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
+        routeInfoRequestClient.getRouteInfo(locations,
+                new RouteInfoRequestClient.Callback<LocationModel>() {
+                    @Override
+                    public void onRouteInfoResult(RouteInfo<LocationModel> routeInfo) {
+                        Collections.sort(locations, new LocationComparator(routeInfo.waypointOrder));
+                        locationListAdapter.notifyDataSetChanged();
+                        item.getActionView().clearAnimation();
+                        item.setActionView(null);
                     }
-                    Collections.sort(locationList, new LocationComparator(locationList, orderArray));
-                    locationListAdapter.notifyDataSetChanged();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                item.getActionView().clearAnimation();
-                item.setActionView(null);
-            }
-        });
+                });
     }
 
     public void mapLocationsOnClick(MenuItem item) {
@@ -195,13 +178,28 @@ public class LocationListActivity extends AppCompatActivity {
                     return;
                 }
                 googleMap.setMyLocationEnabled(true);
-
-                Location bestLoc = geoLocationCache.getBestLocation();
+                googleMap.getUiSettings().setMapToolbarEnabled(false);
+                Location bestLoc = GeoLocationCache.getIncetance(getApplicationContext()).getBestLocation();
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(bestLoc.getLatitude(), bestLoc.getLongitude()), 13));
             }
         });
         fragmentTransaction.add(R.id.location_list_map_placeholder, mapFragment);
         fragmentTransaction.commit();
+    }
+
+    public void mapNavigationButtonOnClick(View view) {
+        ArrayList<LocationModel> locations = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
+        LatLng latLng;
+        if (!locations.isEmpty())
+            latLng = ROUTE_END;
+        else {
+            LocationModel loc = locations.get(0);
+            latLng = new LatLng(loc.latitude, loc.latitude);
+        }
+        Uri gmmIntentUri = Uri.parse(String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", latLng.latitude, latLng.longitude));
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+        startActivity(mapIntent);
     }
 
     private class MapRouteData {
@@ -211,7 +209,7 @@ public class LocationListActivity extends AppCompatActivity {
     }
 
     private void showMap() {
-        View mapView = findViewById(R.id.location_list_map_placeholder);
+        View mapView = findViewById(R.id.location_list_map_wrapper);
         assert mapView != null;
         mapView.setVisibility(View.VISIBLE);
 
@@ -238,40 +236,28 @@ public class LocationListActivity extends AppCompatActivity {
                 }
             }
         });
-        routeRequest(new RequestClient(){
-            @Override
-            protected void onPostExecute(JSONObject jsonObject) {
-                try {
-                    JSONObject route = jsonObject.getJSONArray("routes").getJSONObject(0);
-
-                    String polyline = route.getJSONObject("overview_polyline").getString("points");
-
-                    JSONObject bounds = route.getJSONObject("bounds");
-                    JSONObject northeast = bounds.getJSONObject("northeast");
-                    LatLng northeastBound = new LatLng(northeast.getDouble("lat"), northeast.getDouble("lng"));
-                    JSONObject southwest = bounds.getJSONObject("southwest");
-                    LatLng southwestBound = new LatLng(southwest.getDouble("lat"), southwest.getDouble("lng"));
-
-                    synchronized (mapRouteData) {
-                        mapRouteData.polyline = polyline;
-                        mapRouteData.bounds = new LatLngBounds(southwestBound, northeastBound);
-                        setMapRouteData(mapRouteData);
+        routeInfoRequestClient.getRouteInfo(
+                locationListAdapter.getValuesForSection(LocationModel.State.OPEN),
+                new RouteInfoRequestClient.Callback<LocationModel>() {
+                    @Override
+                    public void onRouteInfoResult(RouteInfo<LocationModel> routeInfo) {
+                        synchronized (mapRouteData) {
+                            mapRouteData.polyline = routeInfo.overviewPolyline;
+                            mapRouteData.bounds = routeInfo.bounds;
+                            setMapRouteData(mapRouteData);
+                        }
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+                });
     }
 
     private void hideMap() {
-        View mapView = findViewById(R.id.location_list_map_placeholder);
+        View mapView = findViewById(R.id.location_list_map_wrapper);
         assert mapView != null;
         mapView.setVisibility(View.GONE);
     }
 
     private void toggleMap() {
-        View mapView = findViewById(R.id.location_list_map_placeholder);
+        View mapView = findViewById(R.id.location_list_map_wrapper);
         assert mapView != null;
 
         if (mapView.getVisibility() == View.VISIBLE)
@@ -296,11 +282,8 @@ public class LocationListActivity extends AppCompatActivity {
     private class LocationComparator implements Comparator<LocationModel> {
         private Map<LocationModel, Integer> orderMap;
 
-        LocationComparator(ArrayList<LocationModel> origList, int[] order) {
-            orderMap = new HashMap<>();
-            for (int i = 0; i < order.length; i++) {
-                orderMap.put(origList.get(order[i]), i);
-            }
+        LocationComparator(Map<LocationModel, Integer> orderMap) {
+            this.orderMap = orderMap;
         }
 
         @Override

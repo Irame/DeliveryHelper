@@ -9,6 +9,9 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class GeoLocationCache {
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 10 meters
@@ -16,10 +19,15 @@ public class GeoLocationCache {
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 1; // 1 minute
 
+    private static GeoLocationCache incetance;
+
+    private List<Listener> geoLocationListenerList;
+
     private Location gpsLocation;
     private Location netLocation;
 
-    public GeoLocationCache(Context context) {
+    private GeoLocationCache(Context context) {
+        geoLocationListenerList = new LinkedList<>();
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         boolean isPermissionGranted = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -43,6 +51,11 @@ public class GeoLocationCache {
         }
     }
 
+    public static GeoLocationCache getIncetance(Context context) {
+        if (incetance == null)
+            incetance = new GeoLocationCache(context);
+        return incetance;
+    }
 
     public Location getBestLocation() {
         if (gpsLocation == null && netLocation == null) return null;
@@ -56,11 +69,25 @@ public class GeoLocationCache {
         }
     }
 
+    public void addGeoLocationListener(Listener listener) {
+        geoLocationListenerList.add(listener);
+    }
+
+    public void removeGeoLocationListener(Listener listener) {
+        geoLocationListenerList.remove(listener);
+    }
+
+    private void OnGeoLocationChanged(Location location) {
+        for (Listener geoLocationListener : geoLocationListenerList) {
+            geoLocationListener.onGeoLocationChanged(location);
+        }
+    }
 
     private class NetworkLocationListener implements LocationListener {
         @Override
         public void onLocationChanged(Location location) {
             netLocation = location;
+            OnGeoLocationChanged(location);
         }
 
         @Override
@@ -83,6 +110,7 @@ public class GeoLocationCache {
         @Override
         public void onLocationChanged(Location location) {
             gpsLocation = location;
+            OnGeoLocationChanged(location);
         }
 
         @Override
@@ -99,5 +127,9 @@ public class GeoLocationCache {
         public void onProviderDisabled(String provider) {
 
         }
+    }
+
+    public interface Listener {
+        void onGeoLocationChanged(Location location);
     }
 }

@@ -11,11 +11,29 @@
         android:id="@+id/location_list"
         android:layout_alignParentTop="true"
         android:choiceMode="none"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:visibility="visible"/>
 
-    <FrameLayout
-        android:id="@+id/location_list_map_placeholder"
+    <RelativeLayout
+        android:id="@+id/location_list_map_wrapper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"/>
+        android:visibility="gone">
+
+        <FrameLayout
+            android:id="@+id/location_list_map_placeholder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+        
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"
+            android:src="@drawable/ic_navigation"
+            android:background="#00ffffff"
+            android:onClick="mapNavigationButtonOnClick" />
+    </RelativeLayout>
 </RelativeLayout>
