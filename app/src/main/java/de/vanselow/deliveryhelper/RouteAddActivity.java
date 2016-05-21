@@ -29,6 +29,7 @@ public class RouteAddActivity extends AppCompatActivity {
 
     private Toast noNameToast;
     private RouteModel route;
+    private long initDate = 0;
     private boolean doubleBackToExitPressedOnce = false;
 
     @Override
@@ -53,7 +54,8 @@ public class RouteAddActivity extends AppCompatActivity {
         } else {
             // Add Route
             route = new RouteModel();
-            updateDate(Calendar.getInstance().getTimeInMillis());
+            initDate = Calendar.getInstance().getTimeInMillis();
+            updateDate(initDate);
         }
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
     }
@@ -91,7 +93,9 @@ public class RouteAddActivity extends AppCompatActivity {
         assert nameInput != null;
         route.name = nameInput.getText().toString();
 
-        if (route.name.isEmpty()) {
+        if (route.name.isEmpty() && route.date == initDate) {
+            super.onBackPressed();
+        } else if (route.name.isEmpty()) {
             if (doubleBackToExitPressedOnce) {
                 super.onBackPressed();
             } else {

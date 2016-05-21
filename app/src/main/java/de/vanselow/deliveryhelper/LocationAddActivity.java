@@ -107,7 +107,9 @@ public class LocationAddActivity extends AppCompatActivity {
         assert notesInput != null;
         location.notes = notesInput.getText().toString();
 
-        if (location.name.isEmpty() || location.address == null) {
+        if (location.name.isEmpty() && location.address == null && location.price == 0 && location.notes.isEmpty()) {
+            super.onBackPressed();
+        } else if (location.name.isEmpty() || location.address == null) {
             if (doubleBackToExitPressedOnce) {
                 super.onBackPressed();
             } else {
