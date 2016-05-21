@@ -1,25 +1,39 @@
 package de.vanselow.deliveryhelper;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.ListView;
 
-import com.google.android.gms.location.places.Place;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.PolyUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -36,6 +50,7 @@ public class LocationListActivity extends AppCompatActivity {
 
     public static final String ROUTE_KEY = "route";
 
+    private MapFragment mapFragment;
     private GeoLocationCache geoLocationCache;
     private LocationListAdapter locationListAdapter;
     private RouteModel routeModel;
@@ -68,6 +83,13 @@ public class LocationListActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        View mapView = findViewById(R.id.location_list_map_placeholder);
+        assert mapView != null;
+        if (mapView.getVisibility() == View.VISIBLE) {
+            hideMap();
+            return;
+        }
+
         Intent data = new Intent();
         data.putExtra(ROUTE_KEY, routeModel);
         setResult(Activity.RESULT_OK, data);
@@ -106,27 +128,33 @@ public class LocationListActivity extends AppCompatActivity {
     }
 
     public void addLocationOnClick(MenuItem item) {
+        hideMap();
         startActivityForResult(new Intent(getApplicationContext(), LocationAddActivity.class), ADD_LOCATION_REQUEST_CODE);
     }
 
-    public void sortLocationsOnClick(final MenuItem item) {
-        LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
-        ImageView iv = (ImageView)inflater.inflate(R.layout.iv_sort_locations, null);
-        Animation rotation = AnimationUtils.loadAnimation(this, R.anim.rotate_menu_item);
-        rotation.setRepeatCount(Animation.INFINITE);
-        iv.startAnimation(rotation);
-        item.setActionView(iv);
-
+    private void routeRequest(RequestClient requestClient) {
         Map<String, String> params = new HashMap<>();
         final Location location = geoLocationCache.getBestLocation();
         params.put("origin", location.getLatitude() + "," + location.getLongitude());
-        params.put("destination", "Apotheke+Vanselow,Schönbornstraße+19,97440+Werneck");
+        params.put("destination", "49.982545,10.097857");
         StringBuilder waypoints = new StringBuilder("optimize:true");
         for (LocationModel loc : locationListAdapter.getValuesForSection(LocationModel.State.OPEN)) {
             waypoints.append("|").append(loc.latitude).append(",").append(loc.longitude);
         }
         params.put("waypoints", waypoints.toString());
-        new RequestClient(){
+        requestClient.execute("maps", "directions", params);
+    }
+
+    public void sortLocationsOnClick(final MenuItem item) {
+        hideMap();
+        LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
+        ImageView iv = (ImageView) inflater.inflate(R.layout.iv_sort_locations, null);
+        Animation rotation = AnimationUtils.loadAnimation(this, R.anim.rotate_menu_item);
+        rotation.setRepeatCount(Animation.INFINITE);
+        iv.startAnimation(rotation);
+        item.setActionView(iv);
+
+        routeRequest(new RequestClient() {
             @Override
             protected void onPostExecute(JSONObject jsonObject) {
                 try {
@@ -148,7 +176,121 @@ public class LocationListActivity extends AppCompatActivity {
                 item.getActionView().clearAnimation();
                 item.setActionView(null);
             }
-        }.execute("maps", "directions", params);
+        });
+    }
+
+    public void mapLocationsOnClick(MenuItem item) {
+        toggleMap();
+    }
+
+    private void ensureMapFragment() {
+        if (mapFragment != null) return;
+        mapFragment = MapFragment.newInstance();
+        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+                googleMap.setMyLocationEnabled(true);
+
+                Location bestLoc = geoLocationCache.getBestLocation();
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(bestLoc.getLatitude(), bestLoc.getLongitude()), 13));
+            }
+        });
+        fragmentTransaction.add(R.id.location_list_map_placeholder, mapFragment);
+        fragmentTransaction.commit();
+    }
+
+    private class MapRouteData {
+        GoogleMap googleMap = null;
+        String polyline = null;
+        LatLngBounds bounds = null;
+    }
+
+    private void showMap() {
+        View mapView = findViewById(R.id.location_list_map_placeholder);
+        assert mapView != null;
+        mapView.setVisibility(View.VISIBLE);
+
+        ensureMapFragment();
+
+        final MapRouteData mapRouteData = new MapRouteData();
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                googleMap.clear();
+
+                ArrayList<LocationModel> locations = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
+                NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
+                for (LocationModel location : locations) {
+                    googleMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(location.latitude, location.longitude))
+                            .title(location.name + " - " + currencyFormat.format(location.price))
+                            .snippet(location.address));
+                }
+
+                synchronized (mapRouteData) {
+                    mapRouteData.googleMap = googleMap;
+                    setMapRouteData(mapRouteData);
+                }
+            }
+        });
+        routeRequest(new RequestClient(){
+            @Override
+            protected void onPostExecute(JSONObject jsonObject) {
+                try {
+                    JSONObject route = jsonObject.getJSONArray("routes").getJSONObject(0);
+
+                    String polyline = route.getJSONObject("overview_polyline").getString("points");
+
+                    JSONObject bounds = route.getJSONObject("bounds");
+                    JSONObject northeast = bounds.getJSONObject("northeast");
+                    LatLng northeastBound = new LatLng(northeast.getDouble("lat"), northeast.getDouble("lng"));
+                    JSONObject southwest = bounds.getJSONObject("southwest");
+                    LatLng southwestBound = new LatLng(southwest.getDouble("lat"), southwest.getDouble("lng"));
+
+                    synchronized (mapRouteData) {
+                        mapRouteData.polyline = polyline;
+                        mapRouteData.bounds = new LatLngBounds(southwestBound, northeastBound);
+                        setMapRouteData(mapRouteData);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private void hideMap() {
+        View mapView = findViewById(R.id.location_list_map_placeholder);
+        assert mapView != null;
+        mapView.setVisibility(View.GONE);
+    }
+
+    private void toggleMap() {
+        View mapView = findViewById(R.id.location_list_map_placeholder);
+        assert mapView != null;
+
+        if (mapView.getVisibility() == View.VISIBLE)
+            hideMap();
+        else
+            showMap();
+    }
+
+    private void setMapRouteData(MapRouteData mapRouteData) {
+        if (mapRouteData.googleMap == null
+                || mapRouteData.polyline == null
+                || mapRouteData.bounds == null)
+            return;
+
+        PolylineOptions polylineOptions = new PolylineOptions().addAll(PolyUtil.decode(mapRouteData.polyline));
+        polylineOptions.color(getResources().getColor(R.color.colorGoogleMapsPolyline));
+        mapRouteData.googleMap.addPolyline(polylineOptions);
+
+        mapRouteData.googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mapRouteData.bounds, 50));
     }
 
     private class LocationComparator implements Comparator<LocationModel> {

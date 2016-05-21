@@ -3,6 +3,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_locations_map"
+        android:icon="@drawable/ic_map"
+        android:title="@string/show_map"
+        android:onClick="mapLocationsOnClick"
+        app:showAsAction="ifRoom"/>
+    <item
         android:id="@+id/action_locations_sort"
         android:icon="@drawable/ic_menu_sort"
         android:title="@string/sort_locations"
