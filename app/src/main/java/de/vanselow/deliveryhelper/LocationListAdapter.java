@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.daimajia.swipe.SwipeLayout;
 import com.daimajia.swipe.adapters.BaseSwipeAdapter;
+import com.google.android.gms.maps.model.LatLng;
 import com.hb.views.PinnedSectionListView;
 
 import java.text.NumberFormat;
@@ -21,6 +22,7 @@ import java.util.Comparator;
 import java.util.Locale;
 
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
+import de.vanselow.deliveryhelper.utils.Utils;
 
 public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSectionListView.PinnedSectionListAdapter {
     private static final String TAG = LocationListAdapter.class.getName();
@@ -309,10 +311,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
         @Override
         public boolean onLongClick(View v) {
             LocationModel loc = (LocationModel) getItem(position);
-            Uri gmmIntentUri = Uri.parse(String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", loc.latitude, loc.longitude));
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-            mapIntent.setPackage("com.google.android.apps.maps");
-            v.getContext().startActivity(mapIntent);
+            Utils.startNavigation(activity, new LatLng(loc.latitude, loc.longitude));
             return true;
         }
 

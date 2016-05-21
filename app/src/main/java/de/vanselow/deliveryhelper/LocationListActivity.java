@@ -41,6 +41,7 @@ import de.vanselow.deliveryhelper.googleapi.RouteInfo;
 import de.vanselow.deliveryhelper.googleapi.RouteInfoRequestClient;
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 import de.vanselow.deliveryhelper.utils.GeoLocationCache;
+import de.vanselow.deliveryhelper.utils.Utils;
 
 public class LocationListActivity extends AppCompatActivity {
     public static final int ADD_LOCATION_REQUEST_CODE = 1;
@@ -188,18 +189,24 @@ public class LocationListActivity extends AppCompatActivity {
     }
 
     public void mapNavigationButtonOnClick(View view) {
-        ArrayList<LocationModel> locations = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
-        LatLng latLng;
-        if (!locations.isEmpty())
-            latLng = ROUTE_END;
-        else {
-            LocationModel loc = locations.get(0);
-            latLng = new LatLng(loc.latitude, loc.latitude);
+        final ArrayList<LocationModel> locations = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
+        if (locations.isEmpty()) {
+            Utils.startNavigation(this, ROUTE_END);
+            return;
         }
-        Uri gmmIntentUri = Uri.parse(String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", latLng.latitude, latLng.longitude));
-        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-        mapIntent.setPackage("com.google.android.apps.maps");
-        startActivity(mapIntent);
+        routeInfoRequestClient.getRouteInfo(locations,
+                new RouteInfoRequestClient.Callback<LocationModel>() {
+                    @Override
+                    public void onRouteInfoResult(RouteInfo<LocationModel> routeInfo) {
+                        for (Map.Entry<LocationModel, Integer> orderEntry : routeInfo.waypointOrder.entrySet()) {
+                            if (orderEntry.getValue() == 0) {
+                                LocationModel loc = orderEntry.getKey();
+                                Utils.startNavigation(getApplicationContext(), new LatLng(loc.latitude, loc.longitude));
+                                return;
+                            }
+                        }
+                    }
+                });
     }
 
     private class MapRouteData {
@@ -209,10 +216,6 @@ public class LocationListActivity extends AppCompatActivity {
     }
 
     private void showMap() {
-        View mapView = findViewById(R.id.location_list_map_wrapper);
-        assert mapView != null;
-        mapView.setVisibility(View.VISIBLE);
-
         ensureMapFragment();
 
         final MapRouteData mapRouteData = new MapRouteData();
@@ -229,6 +232,9 @@ public class LocationListActivity extends AppCompatActivity {
                             .title(location.name + " - " + currencyFormat.format(location.price))
                             .snippet(location.address));
                 }
+                View mapView = findViewById(R.id.location_list_map_wrapper);
+                assert mapView != null;
+                mapView.setVisibility(View.VISIBLE);
 
                 synchronized (mapRouteData) {
                     mapRouteData.googleMap = googleMap;
@@ -253,7 +259,7 @@ public class LocationListActivity extends AppCompatActivity {
     private void hideMap() {
         View mapView = findViewById(R.id.location_list_map_wrapper);
         assert mapView != null;
-        mapView.setVisibility(View.GONE);
+        mapView.setVisibility(View.INVISIBLE);
     }
 
     private void toggleMap() {
