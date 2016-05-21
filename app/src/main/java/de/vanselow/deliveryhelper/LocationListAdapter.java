@@ -298,6 +298,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
                 activity.startActivityForResult(intent, LocationListActivity.EDIT_LOCATION_REQUEST_CODE);
                 swipeLayout.close();
             } else if (v.getId() == checkButton.getId()) {
+                swipeLayout.close(false);
                 LocationModel loc = removeItem(position);
                 loc.state = LocationModel.State.DELIVERED;
                 DatabaseHelper.getInstance(activity).updateRouteLocation(loc);
