@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -30,6 +32,11 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
+import com.nhaarman.listviewanimations.appearance.StickyListHeadersAdapterDecorator;
+import com.nhaarman.listviewanimations.appearance.simple.AlphaInAnimationAdapter;
+import com.nhaarman.listviewanimations.appearance.simple.ScaleInAnimationAdapter;
+
+import com.nineoldandroids.animation.Animator;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -60,6 +67,8 @@ public class LocationListActivity extends AppCompatActivity {
     private BitmapDescriptor openDeliveryMarkerIcon;
     private BitmapDescriptor deliveredDeliveryMarkerIcon;
 
+    private Toast noRouteFoundToast;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,9 +85,13 @@ public class LocationListActivity extends AppCompatActivity {
             return;
         }
         locationListAdapter = new LocationListAdapter(this, routeModel);
+        AlphaInAnimationAdapter animationAdapter = new AlphaInAnimationAdapter(locationListAdapter);
+        StickyListHeadersAdapterDecorator stickyListHeadersAdapterDecorator = new StickyListHeadersAdapterDecorator(animationAdapter);
+
         StickyListHeadersListView locationListView = (StickyListHeadersListView) findViewById(R.id.location_list);
         assert locationListView != null;
-        locationListView.setAdapter(locationListAdapter);
+        stickyListHeadersAdapterDecorator.setStickyListHeadersListView(locationListView);
+        locationListView.setAdapter(stickyListHeadersAdapterDecorator);
 
         routeInfoRequestClient = new RouteInfoRequestClient<LocationModel>(getApplicationContext()) {
             @Override
@@ -91,6 +104,8 @@ public class LocationListActivity extends AppCompatActivity {
         MapsInitializer.initialize(getApplicationContext());
         openDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_open_delivery));
         deliveredDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_delivered_delivery));
+
+        noRouteFoundToast = Toast.makeText(this, R.string.no_route_found, Toast.LENGTH_SHORT);
 
         setResult(Activity.RESULT_CANCELED, getIntent());
     }
@@ -163,8 +178,12 @@ public class LocationListActivity extends AppCompatActivity {
                 new RouteInfoRequestClient.Callback<LocationModel>() {
                     @Override
                     public void onRouteInfoResult(RouteInfo<LocationModel> routeInfo) {
-                        Collections.sort(locations, new LocationComparator(routeInfo.waypointOrder));
-                        locationListAdapter.notifyDataSetChanged();
+                        if (routeInfo == null) {
+                            noRouteFoundToast.show();
+                        } else {
+                            Collections.sort(locations, new LocationComparator(routeInfo.waypointOrder));
+                            locationListAdapter.notifyDataSetChanged();
+                        }
                         item.getActionView().clearAnimation();
                         item.setActionView(null);
                     }
@@ -222,18 +241,25 @@ public class LocationListActivity extends AppCompatActivity {
                 googleMap.clear();
 
                 ArrayList<LocationModel> locations = locationListAdapter.getAllValues();
-                NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
-                for (LocationModel location : locations) {
-                    googleMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(location.latitude, location.longitude))
-                            .title(location.name + " - " + currencyFormat.format(location.price))
-                            .snippet(location.address)
-                            .icon(location.state == LocationModel.State.OPEN
-                                    ? openDeliveryMarkerIcon : deliveredDeliveryMarkerIcon));
+                if (!locations.isEmpty()) {
+                    NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
+                    LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+                    for (LocationModel location : locations) {
+                        LatLng loc = new LatLng(location.latitude, location.longitude);
+                        googleMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(location.latitude, location.longitude))
+                                .title(location.name + " - " + currencyFormat.format(location.price))
+                                .snippet(location.address)
+                                .icon(location.state == LocationModel.State.OPEN
+                                        ? openDeliveryMarkerIcon : deliveredDeliveryMarkerIcon));
+                        boundsBuilder.include(loc);
+                    }
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 50));
                 }
                 View mapView = findViewById(R.id.location_list_map_wrapper);
                 assert mapView != null;
                 mapView.setVisibility(View.VISIBLE);
+
 
                 synchronized (mapRouteData) {
                     mapRouteData.googleMap = googleMap;
@@ -245,13 +271,17 @@ public class LocationListActivity extends AppCompatActivity {
                 locationListAdapter.getValuesForSection(LocationModel.State.OPEN),
                 new RouteInfoRequestClient.Callback<LocationModel>() {
                     @Override
-                    public void onRouteInfoResult(RouteInfo<LocationModel> routeInfo) {
-                        Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), new LocationComparator(routeInfo.waypointOrder));
-                        locationListAdapter.notifyDataSetChanged();
-                        synchronized (mapRouteData) {
-                            mapRouteData.polyline = routeInfo.overviewPolyline;
-                            mapRouteData.bounds = routeInfo.bounds;
-                            setMapRouteData(mapRouteData);
+                    public void onRouteInfoResult(@Nullable RouteInfo<LocationModel> routeInfo) {
+                        if (routeInfo == null) {
+                            noRouteFoundToast.show();
+                        } else {
+                            Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), new LocationComparator(routeInfo.waypointOrder));
+                            locationListAdapter.notifyDataSetChanged();
+                            synchronized (mapRouteData) {
+                                mapRouteData.polyline = routeInfo.overviewPolyline;
+                                mapRouteData.bounds = routeInfo.bounds;
+                                setMapRouteData(mapRouteData);
+                            }
                         }
                     }
                 });

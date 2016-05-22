@@ -2,6 +2,8 @@ package de.vanselow.deliveryhelper.googleapi;
 
 import android.content.Context;
 import android.location.Location;
+import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -17,6 +19,7 @@ import java.util.Map;
 import de.vanselow.deliveryhelper.utils.GeoLocationCache;
 
 public abstract class RouteInfoRequestClient<T> {
+    private static final String TAG = RouteInfoRequestClient.class.getName();
     private Context context;
     private RouteInfo<T> latestRouteInfo;
     private boolean validData;
@@ -100,7 +103,8 @@ public abstract class RouteInfoRequestClient<T> {
 
                     validData = true;
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Could not parse JSON: " + jsonObject.toString() + " (Error: " + e.getMessage() + ")");
+                    latestRouteInfo = null;
                 }
                 callback.onRouteInfoResult(latestRouteInfo);
             }
@@ -122,7 +126,7 @@ public abstract class RouteInfoRequestClient<T> {
     protected abstract LatLng toLatLng(T item);
 
     public interface Callback<T> {
-        void onRouteInfoResult(RouteInfo<T> routeInfo);
+        void onRouteInfoResult(@Nullable RouteInfo<T> routeInfo);
     }
 }
 
