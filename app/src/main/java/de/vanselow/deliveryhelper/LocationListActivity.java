@@ -18,8 +18,6 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -34,9 +32,6 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.nhaarman.listviewanimations.appearance.StickyListHeadersAdapterDecorator;
 import com.nhaarman.listviewanimations.appearance.simple.AlphaInAnimationAdapter;
-import com.nhaarman.listviewanimations.appearance.simple.ScaleInAnimationAdapter;
-
-import com.nineoldandroids.animation.Animator;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -66,8 +61,6 @@ public class LocationListActivity extends AppCompatActivity {
 
     private BitmapDescriptor openDeliveryMarkerIcon;
     private BitmapDescriptor deliveredDeliveryMarkerIcon;
-
-    private Toast noRouteFoundToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,8 +97,6 @@ public class LocationListActivity extends AppCompatActivity {
         MapsInitializer.initialize(getApplicationContext());
         openDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_open_delivery));
         deliveredDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_delivered_delivery));
-
-        noRouteFoundToast = Toast.makeText(this, R.string.no_route_found, Toast.LENGTH_SHORT);
 
         setResult(Activity.RESULT_CANCELED, getIntent());
     }
@@ -178,9 +169,7 @@ public class LocationListActivity extends AppCompatActivity {
                 new RouteInfoRequestClient.Callback<LocationModel>() {
                     @Override
                     public void onRouteInfoResult(RouteInfo<LocationModel> routeInfo) {
-                        if (routeInfo == null) {
-                            noRouteFoundToast.show();
-                        } else {
+                        if (routeInfo != null) {
                             Collections.sort(locations, new LocationComparator(routeInfo.waypointOrder));
                             locationListAdapter.notifyDataSetChanged();
                         }
@@ -272,9 +261,7 @@ public class LocationListActivity extends AppCompatActivity {
                 new RouteInfoRequestClient.Callback<LocationModel>() {
                     @Override
                     public void onRouteInfoResult(@Nullable RouteInfo<LocationModel> routeInfo) {
-                        if (routeInfo == null) {
-                            noRouteFoundToast.show();
-                        } else {
+                        if (routeInfo != null) {
                             Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), new LocationComparator(routeInfo.waypointOrder));
                             locationListAdapter.notifyDataSetChanged();
                             synchronized (mapRouteData) {

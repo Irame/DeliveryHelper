@@ -41,4 +41,6 @@
     <string name="do_you_want_to_delete">Do you want to Delete</string>
     <string name="delete_button">Delete</string>
     <string name="cancel_button">Cancel</string>
+    <string name="failed_to_connect">Failed to connect to Google services.</string>
+    <string name="failed_retrieve_route">Failed to retrieve route information.</string>
 </resources>
