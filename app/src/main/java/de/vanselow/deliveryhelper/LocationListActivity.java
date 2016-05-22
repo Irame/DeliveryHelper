@@ -192,21 +192,10 @@ public class LocationListActivity extends AppCompatActivity {
         final ArrayList<LocationModel> locations = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
         if (locations.isEmpty()) {
             Utils.startNavigation(this, ROUTE_END);
-            return;
+        } else {
+            LocationModel loc = locations.get(0);
+            Utils.startNavigation(this, new LatLng(loc.latitude, loc.longitude));
         }
-        routeInfoRequestClient.getRouteInfo(locations,
-                new RouteInfoRequestClient.Callback<LocationModel>() {
-                    @Override
-                    public void onRouteInfoResult(RouteInfo<LocationModel> routeInfo) {
-                        for (Map.Entry<LocationModel, Integer> orderEntry : routeInfo.waypointOrder.entrySet()) {
-                            if (orderEntry.getValue() == 0) {
-                                LocationModel loc = orderEntry.getKey();
-                                Utils.startNavigation(getApplicationContext(), new LatLng(loc.latitude, loc.longitude));
-                                return;
-                            }
-                        }
-                    }
-                });
     }
 
     private class MapRouteData {
@@ -247,6 +236,8 @@ public class LocationListActivity extends AppCompatActivity {
                 new RouteInfoRequestClient.Callback<LocationModel>() {
                     @Override
                     public void onRouteInfoResult(RouteInfo<LocationModel> routeInfo) {
+                        Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), new LocationComparator(routeInfo.waypointOrder));
+                        locationListAdapter.notifyDataSetChanged();
                         synchronized (mapRouteData) {
                             mapRouteData.polyline = routeInfo.overviewPolyline;
                             mapRouteData.bounds = routeInfo.bounds;
