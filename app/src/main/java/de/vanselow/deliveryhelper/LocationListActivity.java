@@ -42,6 +42,7 @@ import de.vanselow.deliveryhelper.googleapi.RouteInfoRequestClient;
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 import de.vanselow.deliveryhelper.utils.GeoLocationCache;
 import de.vanselow.deliveryhelper.utils.Utils;
+import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
 public class LocationListActivity extends AppCompatActivity {
     public static final int ADD_LOCATION_REQUEST_CODE = 1;
@@ -75,7 +76,7 @@ public class LocationListActivity extends AppCompatActivity {
             return;
         }
         locationListAdapter = new LocationListAdapter(this, routeModel);
-        ListView locationListView = (ListView) findViewById(R.id.location_list);
+        StickyListHeadersListView locationListView = (StickyListHeadersListView) findViewById(R.id.location_list);
         assert locationListView != null;
         locationListView.setAdapter(locationListAdapter);
 

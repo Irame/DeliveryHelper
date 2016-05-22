@@ -1,7 +1,6 @@
 package de.vanselow.deliveryhelper;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,18 +12,17 @@ import android.widget.TextView;
 import com.daimajia.swipe.SwipeLayout;
 import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.google.android.gms.maps.model.LatLng;
-import com.hb.views.PinnedSectionListView;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Locale;
 
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 import de.vanselow.deliveryhelper.utils.Utils;
+import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 
-public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSectionListView.PinnedSectionListAdapter {
+public class LocationListAdapter extends BaseSwipeAdapter implements StickyListHeadersAdapter {
     private static final String TAG = LocationListAdapter.class.getName();
 
     private static final int TYPE_ITEM = 0;
@@ -64,7 +62,6 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
         for (ArrayList<LocationModel> sectionValues : allValues) {
             count += Math.max(sectionValues.size(), 1);
         }
-        count += sections.size();
         return count;
     }
 
@@ -73,11 +70,6 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
         int section = -1;
         while (position >= 0) {
             section++;
-            if (position == 0) {
-                type = TYPE_SEPARATOR;
-                break;
-            }
-            position--;
             int sectionSize = allValues.get(section).size();
             if (position == 0 && sectionSize == 0) {
                 type = TYPE_EPTY_NOTE;
@@ -169,10 +161,6 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
                 v = layoutInflater.inflate(R.layout.location_list_item, parent, false);
                 viewHolder = new ItemViewHolder(v);
                 break;
-            case TYPE_SEPARATOR:
-                v = layoutInflater.inflate(R.layout.location_list_header, parent, false);
-                viewHolder = new HeaderViewHolder(v);
-                break;
             case TYPE_EPTY_NOTE:
                 v = layoutInflater.inflate(R.layout.list_emptynote, parent, false);
                 viewHolder = new EmptyNoteViewHolder(v);
@@ -203,8 +191,23 @@ public class LocationListAdapter extends BaseSwipeAdapter implements PinnedSecti
     }
 
     @Override
-    public boolean isItemViewTypePinned(int viewType) {
-        return viewType == TYPE_SEPARATOR;
+    public View getHeaderView(int position, View convertView, ViewGroup parent) {
+        View v = convertView;
+        ViewHolder viewHolder;
+        if (convertView == null) {
+            v = layoutInflater.inflate(R.layout.location_list_header, parent, false);
+            viewHolder = new HeaderViewHolder(v);
+            v.setTag(viewHolder);
+        } else {
+            viewHolder = (ViewHolder) v.getTag();
+        }
+        viewHolder.setup(position);
+        return v;
+    }
+
+    @Override
+    public long getHeaderId(int position) {
+        return getItemInfo(position).section;
     }
 
     private class ItemInfo {
