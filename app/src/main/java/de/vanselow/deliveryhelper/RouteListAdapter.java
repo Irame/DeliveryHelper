@@ -1,5 +1,6 @@
 package de.vanselow.deliveryhelper;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
+import de.vanselow.deliveryhelper.utils.Utils;
 
 public class RouteListAdapter extends BaseSwipeAdapter {
     private static final int TYPE_ITEM = 0;
@@ -51,15 +53,10 @@ public class RouteListAdapter extends BaseSwipeAdapter {
         }
     }
 
-    public void removeItemById(long id) {
-        for (int i = 0; i < routes.size(); i++) {
-            if (routes.get(i).id == id) {
-                routes.remove(i);
-                DatabaseHelper.getInstance(activity).deleteRouteById(id);
-                notifyDataSetChanged();
-                break;
-            }
-        }
+    public void removeItem(int position) {
+        RouteModel route = routes.remove(position);
+        DatabaseHelper.getInstance(activity).deleteRouteById(route.id);
+        notifyDataSetChanged();
     }
 
     public ArrayList<RouteModel> getRoutes() {
@@ -148,6 +145,7 @@ public class RouteListAdapter extends BaseSwipeAdapter {
         private TextView totalPrice;
 
         private RouteModel route;
+        private int position;
 
         ItemViewHolder(View v) {
             swipeLayout = (SwipeLayout) v;
@@ -174,6 +172,7 @@ public class RouteListAdapter extends BaseSwipeAdapter {
         public void setup(int position) {
             RouteModel route = (RouteModel) getItem(position);
             this.route = route;
+            this.position = position;
 
             name.setText(route.name);
 
@@ -199,8 +198,15 @@ public class RouteListAdapter extends BaseSwipeAdapter {
                 activity.startActivityForResult(intent, RouteListActivity.EDIT_ROUTE_REQUEST_CODE);
                 swipeLayout.close();
             } else if (v.getId() == deleteButton.getId()) {
-                swipeLayout.close(false);
-                removeItemById(route.id);
+                swipeLayout.close();
+                RouteModel route = routes.get(position);
+                Utils.deleteAlert(activity, route.name, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        removeItem(position);
+                        dialog.dismiss();
+                    }
+                }).show();
             }
         }
     }

@@ -1,5 +1,6 @@
 package de.vanselow.deliveryhelper;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -293,10 +294,17 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
                 notesDisplayId = loc.id == notesDisplayId ? -1 : loc.id;
                 notifyDataSetChanged();
             } else if (v.getId() == deleteButton.getId()) {
-                swipeLayout.close(false);
-                LocationModel loc = removeItem(position);
-                routeModel.locations.remove(loc);
-                DatabaseHelper.getInstance(activity).deleteRouteLocation(loc);
+                swipeLayout.close();
+                LocationModel loc = (LocationModel) getItem(position);
+                Utils.deleteAlert(activity, loc.name, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        LocationModel loc = removeItem(position);
+                        routeModel.locations.remove(loc);
+                        DatabaseHelper.getInstance(activity).deleteRouteLocation(loc);
+                        dialog.dismiss();
+                    }
+                }).show();
             } else if (v.getId() == editButton.getId()) {
                 Intent intent = new Intent(activity.getApplicationContext(), LocationAddActivity.class);
                 intent.putExtra(LocationAddActivity.LOCATION_RESULT_KEY, loc);

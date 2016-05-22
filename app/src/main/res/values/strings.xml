@@ -37,4 +37,8 @@
     <string name="no_routes_existing">No Route existing.</string>
     <string name="show_map">Show Map</string>
     <string name="no_route_found">No Route Found!</string>
+    <string name="delete_q">Delete?</string>
+    <string name="do_you_want_to_delete">Do you want to Delete</string>
+    <string name="delete_button">Delete</string>
+    <string name="cancel_button">Cancel</string>
 </resources>
