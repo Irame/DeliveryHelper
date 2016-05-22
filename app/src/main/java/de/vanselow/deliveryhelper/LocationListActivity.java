@@ -6,7 +6,6 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -23,7 +22,9 @@ import android.widget.ListView;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -34,7 +35,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Locale;
 import java.util.Map;
 
 import de.vanselow.deliveryhelper.googleapi.RouteInfo;
@@ -55,6 +55,9 @@ public class LocationListActivity extends AppCompatActivity {
     private RouteInfoRequestClient<LocationModel> routeInfoRequestClient;
     private LocationListAdapter locationListAdapter;
     private RouteModel routeModel;
+
+    private BitmapDescriptor openDeliveryMarkerIcon;
+    private BitmapDescriptor deliveredDeliveryMarkerIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +86,10 @@ public class LocationListActivity extends AppCompatActivity {
             }
         };
         routeInfoRequestClient.setDestination(ROUTE_END);
+
+        MapsInitializer.initialize(getApplicationContext());
+        openDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_open_delivery));
+        deliveredDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_delivered_delivery));
 
         setResult(Activity.RESULT_CANCELED, getIntent());
     }
@@ -213,13 +220,15 @@ public class LocationListActivity extends AppCompatActivity {
             public void onMapReady(GoogleMap googleMap) {
                 googleMap.clear();
 
-                ArrayList<LocationModel> locations = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
+                ArrayList<LocationModel> locations = locationListAdapter.getAllValues();
                 NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
                 for (LocationModel location : locations) {
                     googleMap.addMarker(new MarkerOptions()
                             .position(new LatLng(location.latitude, location.longitude))
                             .title(location.name + " - " + currencyFormat.format(location.price))
-                            .snippet(location.address));
+                            .snippet(location.address)
+                            .icon(location.state == LocationModel.State.OPEN
+                                    ? openDeliveryMarkerIcon : deliveredDeliveryMarkerIcon));
                 }
                 View mapView = findViewById(R.id.location_list_map_wrapper);
                 assert mapView != null;

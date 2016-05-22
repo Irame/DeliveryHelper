@@ -11,4 +11,7 @@
     <color name="colorGoogleMapsPolyline">#aa00B3FD</color>
     <color name="colorNavigationButtonOutside">#ff4285F4</color>
     <color name="colorNavigationButtonInside">#ffffffff</color>
+    <color name="colorMarkerOpenDeliveryBackground">#ffff9233</color>
+    <color name="colorMarkerDeliveredDeliveryBackground">#ff6dd757</color>
+    <color name="colorMarkerOutline">#ff000000</color>
 </resources>
