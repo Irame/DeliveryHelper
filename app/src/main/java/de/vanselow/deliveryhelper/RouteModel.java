@@ -2,10 +2,17 @@ package de.vanselow.deliveryhelper;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
 public class RouteModel implements Parcelable {
+    private static final String TAG = RouteModel.class.getName();
+
     public long id;
     public String name;
     public long date;
@@ -58,6 +65,45 @@ public class RouteModel implements Parcelable {
                 count++;
         }
         return count;
+    }
+
+    //JSON stuff
+    public JSONObject toJson() throws JSONException {
+        JSONObject result = new JSONObject();
+        try {
+            result.put("id", id);
+            result.put("name", name);
+            result.put("date", date);
+            JSONArray locationArray = new JSONArray();
+            for (LocationModel location : locations) {
+                locationArray.put(location.toJson());
+            }
+            result.put("locations", locationArray);
+        } catch (JSONException e) {
+            Log.e(TAG, "Error while creating JSONObject from RouteModel with: id=" + id);
+            throw e;
+        }
+        return result;
+    }
+
+    public static RouteModel fromJson(JSONObject json) throws JSONException {
+        RouteModel result = new RouteModel();
+        try {
+            if (json.has("id")) result.id = json.getLong("id");
+            result.name = json.getString("name");
+            result.date = json.getLong("date");
+            result.locations = new ArrayList<>();
+            if (json.has("locations")) {
+                JSONArray locationsArray = json.getJSONArray("locations");
+                for (int i = 0; i < locationsArray.length(); i++) {
+                    result.locations.add(LocationModel.fromJson(locationsArray.getJSONObject(i)));
+                }
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Error while creating RouteModel from JSONObject with: id=" + result.id);
+            throw e;
+        }
+        return result;
     }
 
     // Parcelable stuff

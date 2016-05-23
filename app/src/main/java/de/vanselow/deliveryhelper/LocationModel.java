@@ -2,10 +2,16 @@ package de.vanselow.deliveryhelper;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.google.android.gms.location.places.Place;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class LocationModel implements Parcelable {
+    private static final String TAG = LocationModel.class.getName();
+
     public enum State {
         OPEN(R.string.open, R.string.no_open_locations),
         DELIVERED(R.string.delivered, R.string.no_delivered_locations);
@@ -71,6 +77,46 @@ public class LocationModel implements Parcelable {
         this.longitude = place.getLatLng().longitude;
     }
 
+    // Json stuff
+    public JSONObject toJson() throws JSONException {
+        JSONObject result = new JSONObject();
+        try {
+            result.put("id", id);
+            result.put("name", name);
+            result.put("address", address);
+            result.put("placeid", placeid);
+            result.put("latitude", latitude);
+            result.put("longitude", longitude);
+            result.put("price", price);
+            result.put("notes", notes);
+            result.put("state", state.name());
+        } catch (JSONException e) {
+            Log.e(TAG, "Error while creating JSONObject from LocationsModel with: id=" + id);
+            throw e;
+        }
+        return result;
+    }
+
+    public static LocationModel fromJson(JSONObject json) throws JSONException {
+        LocationModel result = new LocationModel();
+        try {
+            if (json.has("id")) result.id = json.getLong("id");
+            result.name = json.getString("name");
+            result.address = json.getString("address");
+            result.placeid = json.getString("placeid");
+            result.latitude = json.getDouble("latitude");
+            result.longitude = json.getDouble("longitude");
+            if (json.has("price")) result.price = (float) json.getDouble("price");
+            if (json.has("notes")) result.notes = json.getString("notes");
+            if (json.has("state")) result.state = State.valueOf(json.getString("state"));
+        } catch (JSONException e) {
+            Log.e(TAG, "Error while creating LocationsModel from JSONObject with: id=" + result.id);
+            throw e;
+        }
+        return result;
+    }
+
+    // Parcelable stuff
     protected LocationModel(Parcel in) {
         id = in.readLong();
         name = in.readString();

@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import de.vanselow.deliveryhelper.utils.DatabaseHelper;
+import de.vanselow.deliveryhelper.utils.DatabaseAsync;
 import de.vanselow.deliveryhelper.utils.Utils;
 import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 
@@ -301,7 +301,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
                     public void onClick(DialogInterface dialog, int which) {
                         LocationModel loc = removeItem(position);
                         routeModel.locations.remove(loc);
-                        DatabaseHelper.getInstance(activity).deleteRouteLocation(loc);
+                        DatabaseAsync.getInstance(activity).deleteRouteLocation(loc);
                         dialog.dismiss();
                     }
                 }).show();
@@ -314,7 +314,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
                 swipeLayout.close(false);
                 LocationModel loc = removeItem(position);
                 loc.state = LocationModel.State.DELIVERED;
-                DatabaseHelper.getInstance(activity).updateRouteLocation(loc);
+                DatabaseAsync.getInstance(activity).updateRouteLocation(loc);
                 addItem(loc);
             }
         }

@@ -41,7 +41,7 @@ import java.util.Map;
 
 import de.vanselow.deliveryhelper.googleapi.RouteInfo;
 import de.vanselow.deliveryhelper.googleapi.RouteInfoRequestClient;
-import de.vanselow.deliveryhelper.utils.DatabaseHelper;
+import de.vanselow.deliveryhelper.utils.DatabaseAsync;
 import de.vanselow.deliveryhelper.utils.GeoLocationCache;
 import de.vanselow.deliveryhelper.utils.Utils;
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
@@ -136,7 +136,7 @@ public class LocationListActivity extends AppCompatActivity {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == ADD_LOCATION_REQUEST_CODE) {
                 LocationModel newLocation = data.getParcelableExtra(LocationAddActivity.LOCATION_RESULT_KEY);
-                DatabaseHelper.getInstance(this).addOrUpdateRouteLocation(newLocation, routeModel.id);
+                DatabaseAsync.getInstance(this).addOrUpdateRouteLocation(newLocation, routeModel.id);
                 routeModel.locations.add(newLocation);
                 locationListAdapter.addItem(newLocation);
                 routeInfoRequestClient.invalidateLatestRoute();
@@ -145,7 +145,7 @@ public class LocationListActivity extends AppCompatActivity {
                 LocationModel updatedLocation = locationListAdapter.updateItem(editedLocation);
                 routeInfoRequestClient.invalidateLatestRoute();
                 if (updatedLocation != null)
-                    DatabaseHelper.getInstance(this).addOrUpdateRouteLocation(updatedLocation, routeModel.id);
+                    DatabaseAsync.getInstance(this).addOrUpdateRouteLocation(updatedLocation, routeModel.id);
             }
         }
     }

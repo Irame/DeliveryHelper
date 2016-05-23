@@ -10,10 +10,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ListView;
 
-import java.util.ArrayList;
-import java.util.Calendar;
+import org.json.JSONObject;
 
-import de.vanselow.deliveryhelper.utils.DatabaseHelper;
+import java.util.ArrayList;
+
+import de.vanselow.deliveryhelper.utils.DatabaseAsync;
 import pl.com.salsoft.sqlitestudioremote.SQLiteStudioService;
 
 public class RouteListActivity extends AppCompatActivity {
@@ -26,34 +27,51 @@ public class RouteListActivity extends AppCompatActivity {
     private static final String CHECKED_LIST_KEY = "checkedList";
 
     private RouteListAdapter routeListAdapter;
+    private boolean activityVisible;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_route_list);
 
+        activityVisible = false;
+
+        RemoteAccess.start(this, 1337);
+        RemoteAccess.setRoutesDataReceivedListener(new RemoteAccess.DataReceivedListener() {
+            @Override
+            public void onDataReceived(JSONObject jsonObject) {
+                if (activityVisible) updateRouteListData();
+            }
+        });
+
         //deleteDatabase("vanselow_delivery_helper");
 
         // for external sqlite browser
         SQLiteStudioService.instance().start(this);
 
-        ArrayList<RouteModel> routeList = null;
-        if (savedInstanceState != null) {
-            routeList = savedInstanceState.getParcelableArrayList(ROUTE_LIST_KEY);
-        }
-        if (routeList == null) {
-            routeList = DatabaseHelper.getInstance(this).getAllRoutes();
-        }
-        routeListAdapter = new RouteListAdapter(this, routeList);
+        routeListAdapter = new RouteListAdapter(this, new ArrayList<RouteModel>());
+        updateRouteListData();
         ListView routeListView = (ListView) findViewById(R.id.route_list);
         assert routeListView != null;
         routeListView.setAdapter(routeListAdapter);
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(ROUTE_LIST_KEY, routeListAdapter.getRoutes());
+    protected void onResume() {
+        super.onResume();
+        activityVisible = true;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        activityVisible = false;
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        updateRouteListData();
     }
 
     @Override
@@ -89,9 +107,26 @@ public class RouteListActivity extends AppCompatActivity {
                 routeListAdapter.updateItem(updatedRoute);
             }
         } else if (data != null) {
-            RouteModel route = data.getParcelableExtra(LocationListActivity.ROUTE_KEY);
-            route.locations = DatabaseHelper.getInstance(this).getAllRouteLocations(route.id);
-            routeListAdapter.updateItem(route);
+            final RouteModel route = data.getParcelableExtra(LocationListActivity.ROUTE_KEY);
+            DatabaseAsync.getInstance(this).getAllRouteLocations(route.id, new DatabaseAsync.Callback<ArrayList<LocationModel>>() {
+                @Override
+                public void onPostExecute(ArrayList<LocationModel> locationModels) {
+                    route.locations = locationModels;
+                    routeListAdapter.updateItem(route);
+                }
+            });
         }
+    }
+
+    private void updateRouteListData() {
+        routeListAdapter.getRoutes().clear();
+        DatabaseAsync.getInstance(this).getAllRoutes(new DatabaseAsync.Callback<ArrayList<RouteModel>>() {
+            @Override
+            public void onPostExecute(ArrayList<RouteModel> routeModels) {
+                routeListAdapter.getRoutes().clear();
+                routeListAdapter.getRoutes().addAll(routeModels);
+                routeListAdapter.notifyDataSetChanged();
+            }
+        });
     }
 }

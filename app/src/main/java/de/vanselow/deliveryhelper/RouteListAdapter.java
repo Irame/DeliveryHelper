@@ -17,7 +17,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import de.vanselow.deliveryhelper.utils.DatabaseHelper;
+import de.vanselow.deliveryhelper.utils.DatabaseAsync;
 import de.vanselow.deliveryhelper.utils.Utils;
 
 public class RouteListAdapter extends BaseSwipeAdapter {
@@ -39,15 +39,15 @@ public class RouteListAdapter extends BaseSwipeAdapter {
 
     public void addItem(RouteModel route) {
         routes.add(route);
-        DatabaseHelper.getInstance(activity).addOrUpdateRoute(route);
         notifyDataSetChanged();
+        DatabaseAsync.getInstance(activity).addOrUpdateRoute(route);
     }
 
     public void updateItem(RouteModel otherRoute) {
         for (RouteModel route : routes) {
             if (route.id == otherRoute.id && route.update(otherRoute)) {
-                DatabaseHelper.getInstance(activity).addOrUpdateRoute(route);
                 notifyDataSetChanged();
+                DatabaseAsync.getInstance(activity).addOrUpdateRoute(route);
                 break;
             }
         }
@@ -55,8 +55,8 @@ public class RouteListAdapter extends BaseSwipeAdapter {
 
     public void removeItem(int position) {
         RouteModel route = routes.remove(position);
-        DatabaseHelper.getInstance(activity).deleteRouteById(route.id);
         notifyDataSetChanged();
+        DatabaseAsync.getInstance(activity).deleteRouteById(route.id);
     }
 
     public ArrayList<RouteModel> getRoutes() {
