@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -51,13 +52,17 @@ public class LocationListActivity extends AppCompatActivity {
     public static final int EDIT_LOCATION_REQUEST_CODE = 2;
 
     public static final String ROUTE_KEY = "route";
+    public static final String IS_SORTING_KEY = "isSoring";
 
     private static final LatLng ROUTE_END = new LatLng(49.982545, 10.097857);
+
+    private static final String AUTOSORT_OPTION_PREFKEY = "autosortOption";
 
     private MapFragment mapFragment;
     private RouteInfoRequestClient<LocationModel> routeInfoRequestClient;
     private LocationListAdapter locationListAdapter;
     private RouteModel routeModel;
+    private boolean isSorting = false;
 
     private BitmapDescriptor openDeliveryMarkerIcon;
     private BitmapDescriptor deliveredDeliveryMarkerIcon;
@@ -74,6 +79,7 @@ public class LocationListActivity extends AppCompatActivity {
 
         if (savedInstanceState != null) {
             routeModel = savedInstanceState.getParcelable(ROUTE_KEY);
+            isSorting = savedInstanceState.getBoolean(IS_SORTING_KEY);
         }
         if (routeModel == null) {
             routeModel = getIntent().getParcelableExtra(ROUTE_KEY);
@@ -99,6 +105,8 @@ public class LocationListActivity extends AppCompatActivity {
         };
         routeInfoRequestClient.setDestination(ROUTE_END);
         routeInfoRequestClient.attachToGeoLocationChanges();
+
+        autosortIfOptionSelected();
 
         MapsInitializer.initialize(getApplicationContext());
         openDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_open_delivery));
@@ -133,6 +141,7 @@ public class LocationListActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(ROUTE_KEY, routeModel);
+        outState.putBoolean(IS_SORTING_KEY, isSorting);
     }
 
     @Override
@@ -140,7 +149,28 @@ public class LocationListActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.location_list_menu, menu);
         optionsMenu = menu;
+        if (isSorting) startSortIconAnimation();
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem autosortOption = menu.findItem(R.id.action_autosort_locations);
+        autosortOption.setChecked(getPreferences(0).getBoolean(AUTOSORT_OPTION_PREFKEY, false));
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_autosort_locations) {
+            boolean checked = !item.isChecked();
+            item.setChecked(checked);
+            SharedPreferences.Editor editor = getPreferences(0).edit();
+            editor.putBoolean(AUTOSORT_OPTION_PREFKEY, checked);
+            editor.apply();
+            if (checked) updateRouteInfo();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -152,13 +182,15 @@ public class LocationListActivity extends AppCompatActivity {
                 DatabaseAsync.getInstance(this).addOrUpdateRouteLocation(newLocation, routeModel.id);
                 routeModel.locations.add(newLocation);
                 locationListAdapter.addItem(newLocation);
-                routeInfoRequestClient.invalidateLatestRoute();
+                routeInfoRequestClient.invalidateLatestRoute(true);
+                autosortIfOptionSelected();
             } else if (requestCode == EDIT_LOCATION_REQUEST_CODE) {
                 LocationModel editedLocation = data.getParcelableExtra(LocationAddActivity.LOCATION_RESULT_KEY);
                 LocationModel updatedLocation = locationListAdapter.updateItem(editedLocation);
-                routeInfoRequestClient.invalidateLatestRoute();
+                routeInfoRequestClient.invalidateLatestRoute(true);
                 if (updatedLocation != null)
                     DatabaseAsync.getInstance(this).addOrUpdateRouteLocation(updatedLocation, routeModel.id);
+                autosortIfOptionSelected();
             }
         }
     }
@@ -171,6 +203,12 @@ public class LocationListActivity extends AppCompatActivity {
     public void sortLocationsOnClick(final MenuItem item) {
         hideMap();
         updateRouteInfo();
+    }
+
+    private void autosortIfOptionSelected() {
+        if (getPreferences(0).getBoolean(AUTOSORT_OPTION_PREFKEY, false)) {
+            updateRouteInfo();
+        }
     }
 
     public void mapLocationsOnClick(MenuItem item) {
@@ -275,6 +313,8 @@ public class LocationListActivity extends AppCompatActivity {
 
     private void startSortIconAnimation() {
         stopSortIconAnimation();
+        isSorting = true;
+        if (optionsMenu == null) return;
         MenuItem item = optionsMenu.findItem(R.id.action_locations_sort);
         if (item != null) {
             LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
@@ -287,6 +327,8 @@ public class LocationListActivity extends AppCompatActivity {
     }
 
     private void stopSortIconAnimation() {
+        isSorting = false;
+        if (optionsMenu == null) return;
         MenuItem item = optionsMenu.findItem(R.id.action_locations_sort);
         if (item != null && item.getActionView() != null) {
             item.getActionView().clearAnimation();

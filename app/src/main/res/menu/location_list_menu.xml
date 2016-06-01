@@ -7,11 +7,11 @@
         android:icon="@drawable/ic_map"
         android:title="@string/show_map"
         android:onClick="mapLocationsOnClick"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
     <item
         android:id="@+id/action_locations_sort"
         android:icon="@drawable/ic_menu_sort"
-        android:title="@string/sort_locations"
+        android:title="@string/sort_open_locations"
         android:onClick="sortLocationsOnClick"
         app:showAsAction="ifRoom"/>
     <item
@@ -19,5 +19,10 @@
         android:icon="@drawable/ic_menu_add"
         android:title="@string/add_location"
         android:onClick="addLocationOnClick"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_autosort_locations"
+        android:title="@string/autosort_open_locations"
+        android:checkable="true"
+        app:showAsAction="never"/>
 </menu>

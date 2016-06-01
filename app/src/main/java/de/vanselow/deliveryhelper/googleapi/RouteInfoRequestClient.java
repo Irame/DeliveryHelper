@@ -42,7 +42,7 @@ public abstract class RouteInfoRequestClient<T> {
         geoLocationChangedListener = new GeoLocationCache.Listener() {
             @Override
             public void onGeoLocationChanged(Location location) {
-                invalidateLatestRoute();
+                invalidateLatestRoute(false);
             }
         };
         validData = false;
@@ -62,12 +62,12 @@ public abstract class RouteInfoRequestClient<T> {
 
     public void setOrigin(LatLng origin) {
         this.origin = origin;
-        invalidateLatestRoute();
+        invalidateLatestRoute(true);
     }
 
     public void setDestination(LatLng destination) {
         this.destination = destination;
-        invalidateLatestRoute();
+        invalidateLatestRoute(true);
     }
 
     private LatLng getOrigin() {
@@ -154,8 +154,8 @@ public abstract class RouteInfoRequestClient<T> {
         }
     }
 
-    public void invalidateLatestRoute() {
-        cancelRequest();
+    public void invalidateLatestRoute(boolean cancelRequest) {
+        if (cancelRequest) cancelRequest();
         validData = false;
     }
 

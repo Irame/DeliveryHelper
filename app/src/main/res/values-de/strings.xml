@@ -19,7 +19,7 @@
     <string name="remove_route">Route entfernen</string>
     <string name="routes">Routen</string>
     <string name="search">Suche</string>
-    <string name="sort_locations">Orte sortieren</string>
+    <string name="sort_open_locations">Offene Orte sortieren</string>
     <string name="delivered">Abgeliefert</string>
     <string name="no_delivered_locations">Keine abgelieferten Orte.</string>
     <string name="no_open_locations">Keine offenen Orte.</string>
@@ -33,4 +33,5 @@
     <string name="show_map">Karte anzeigen</string>
     <string name="failed_retrieve_route">Beziehen der Routeninformationen fehlgeschlagen.</string>
     <string name="failed_to_connect">Verbindung zu Google Services fehlgeschlagen.</string>
+    <string name="autosort_open_locations">Offene Orte automatisch sortieren</string>
 </resources>
