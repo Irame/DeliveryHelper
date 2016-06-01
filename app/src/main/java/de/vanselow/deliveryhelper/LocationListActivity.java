@@ -62,6 +62,11 @@ public class LocationListActivity extends AppCompatActivity {
     private BitmapDescriptor openDeliveryMarkerIcon;
     private BitmapDescriptor deliveredDeliveryMarkerIcon;
 
+    private Menu optionsMenu;
+
+    private RouteInfo<LocationModel> routeInfo;
+    private GoogleMap googleMap;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,6 +132,7 @@ public class LocationListActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.location_list_menu, menu);
+        optionsMenu = menu;
         return true;
     }
 
@@ -157,28 +163,7 @@ public class LocationListActivity extends AppCompatActivity {
 
     public void sortLocationsOnClick(final MenuItem item) {
         hideMap();
-        LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
-        ImageView iv = (ImageView) inflater.inflate(R.layout.iv_sort_locations, null);
-        Animation rotation = AnimationUtils.loadAnimation(this, R.anim.rotate_menu_item);
-        rotation.setRepeatCount(Animation.INFINITE);
-        iv.startAnimation(rotation);
-        item.setActionView(iv);
-
-        final ArrayList<LocationModel> locations = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
-        routeInfoRequestClient.getRouteInfo(locations,
-                new RouteInfoRequestClient.Callback<LocationModel>() {
-                    @Override
-                    public void onRouteInfoResult(RouteInfo<LocationModel> routeInfo) {
-                        if (routeInfo != null) {
-                            LocationComparator comparator = new LocationComparator(routeInfo.waypointOrder);
-                            Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), comparator);
-                            Collections.sort(routeModel.locations, comparator);
-                            locationListAdapter.notifyDataSetChanged();
-                        }
-                        item.getActionView().clearAnimation();
-                        item.setActionView(null);
-                    }
-                });
+        updateRouteInfo();
     }
 
     public void mapLocationsOnClick(MenuItem item) {
@@ -216,20 +201,14 @@ public class LocationListActivity extends AppCompatActivity {
         }
     }
 
-    private class MapRouteData {
-        GoogleMap googleMap = null;
-        String polyline = null;
-        LatLngBounds bounds = null;
-    }
-
     private void showMap() {
         ensureMapFragment();
 
-        final MapRouteData mapRouteData = new MapRouteData();
         mapFragment.getMapAsync(new OnMapReadyCallback() {
             @Override
-            public void onMapReady(GoogleMap googleMap) {
-                googleMap.clear();
+            public void onMapReady(GoogleMap gMap) {
+                googleMap = gMap;
+                gMap.clear();
 
                 ArrayList<LocationModel> locations = locationListAdapter.getAllValues();
                 if (!locations.isEmpty()) {
@@ -237,7 +216,7 @@ public class LocationListActivity extends AppCompatActivity {
                     LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
                     for (LocationModel location : locations) {
                         LatLng loc = new LatLng(location.latitude, location.longitude);
-                        googleMap.addMarker(new MarkerOptions()
+                        gMap.addMarker(new MarkerOptions()
                                 .position(new LatLng(location.latitude, location.longitude))
                                 .title(location.name + " - " + currencyFormat.format(location.price))
                                 .snippet(location.address)
@@ -245,37 +224,15 @@ public class LocationListActivity extends AppCompatActivity {
                                         ? openDeliveryMarkerIcon : deliveredDeliveryMarkerIcon));
                         boundsBuilder.include(loc);
                     }
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 50));
+                    gMap.moveCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 50));
                 }
                 View mapView = findViewById(R.id.location_list_map_wrapper);
                 assert mapView != null;
                 mapView.setVisibility(View.VISIBLE);
-
-
-                synchronized (mapRouteData) {
-                    mapRouteData.googleMap = googleMap;
-                    setMapRouteData(mapRouteData);
-                }
+                updateMapRouteData();
             }
         });
-        routeInfoRequestClient.getRouteInfo(
-                locationListAdapter.getValuesForSection(LocationModel.State.OPEN),
-                new RouteInfoRequestClient.Callback<LocationModel>() {
-                    @Override
-                    public void onRouteInfoResult(@Nullable RouteInfo<LocationModel> routeInfo) {
-                        if (routeInfo != null) {
-                            LocationComparator comparator = new LocationComparator(routeInfo.waypointOrder);
-                            Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), comparator);
-                            Collections.sort(routeModel.locations, comparator);
-                            locationListAdapter.notifyDataSetChanged();
-                            synchronized (mapRouteData) {
-                                mapRouteData.polyline = routeInfo.overviewPolyline;
-                                mapRouteData.bounds = routeInfo.bounds;
-                                setMapRouteData(mapRouteData);
-                            }
-                        }
-                    }
-                });
+        updateRouteInfo();
     }
 
     private void hideMap() {
@@ -294,17 +251,60 @@ public class LocationListActivity extends AppCompatActivity {
             showMap();
     }
 
-    private void setMapRouteData(MapRouteData mapRouteData) {
-        if (mapRouteData.googleMap == null
-                || mapRouteData.polyline == null
-                || mapRouteData.bounds == null)
+    private void updateMapRouteData() {
+        if (googleMap == null
+                || routeInfo == null
+                || routeInfo.overviewPolyline == null
+                || routeInfo.bounds == null)
             return;
 
-        PolylineOptions polylineOptions = new PolylineOptions().addAll(PolyUtil.decode(mapRouteData.polyline));
+        PolylineOptions polylineOptions = new PolylineOptions().addAll(PolyUtil.decode(routeInfo.overviewPolyline));
         polylineOptions.color(getResources().getColor(R.color.colorGoogleMapsPolyline));
-        mapRouteData.googleMap.addPolyline(polylineOptions);
+        googleMap.addPolyline(polylineOptions);
 
-        mapRouteData.googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mapRouteData.bounds, 50));
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(routeInfo.bounds, 50));
+    }
+
+
+    private void startSortIconAnimation() {
+        stopSortIconAnimation();
+        MenuItem item = optionsMenu.findItem(R.id.action_locations_sort);
+        if (item != null) {
+            LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
+            ImageView iv = (ImageView) inflater.inflate(R.layout.iv_sort_locations, null);
+            Animation rotation = AnimationUtils.loadAnimation(this, R.anim.rotate_menu_item);
+            rotation.setRepeatCount(Animation.INFINITE);
+            iv.startAnimation(rotation);
+            item.setActionView(iv);
+        }
+    }
+
+    private void stopSortIconAnimation() {
+        MenuItem item = optionsMenu.findItem(R.id.action_locations_sort);
+        if (item != null && item.getActionView() != null) {
+            item.getActionView().clearAnimation();
+            item.setActionView(null);
+        }
+    }
+
+    private void updateRouteInfo() {
+        startSortIconAnimation();
+        routeInfoRequestClient.getRouteInfo(
+                locationListAdapter.getValuesForSection(LocationModel.State.OPEN),
+                new RouteInfoRequestClient.Callback<LocationModel>() {
+                    @Override
+                    public void onRouteInfoResult(@Nullable RouteInfo<LocationModel> requestedRouteInfo) {
+                        if (requestedRouteInfo != null) {
+                            routeInfo = requestedRouteInfo;
+                            LocationComparator comparator = new LocationComparator(routeInfo.waypointOrder);
+                            Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), comparator);
+                            Collections.sort(routeModel.locations, comparator);
+                            locationListAdapter.notifyDataSetChanged();
+                            updateMapRouteData();
+                        }
+                        stopSortIconAnimation();
+                    }
+                });
     }
 
     private class LocationComparator implements Comparator<LocationModel> {

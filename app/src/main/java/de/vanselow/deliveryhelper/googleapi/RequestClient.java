@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -45,21 +46,30 @@ public class RequestClient extends AsyncTask<URL, Void, JSONObject> {
     @Override
     protected JSONObject doInBackground(@NonNull URL... params) {
         URL url = params[0];
-        HttpURLConnection connection;
+        HttpURLConnection connection = null;
+        InputStream inputStream = null;
         JSONObject result = null;
         StringBuilder total;
         try {
-            connection = (HttpURLConnection) url.openConnection();
-
-            BufferedReader r = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            total = new StringBuilder();
-            String line;
-            while ((line = r.readLine()) != null) {
-                total.append(line).append('\n');
+            try {
+                if (isCancelled()) return null;
+                connection = (HttpURLConnection) url.openConnection();
+                inputStream = connection.getInputStream();
+                BufferedReader r = new BufferedReader(new InputStreamReader(inputStream));
+                total = new StringBuilder();
+                String line;
+                while (!isCancelled() && (line = r.readLine()) != null) {
+                    total.append(line).append('\n');
+                }
+                if (isCancelled()) return null;
+                result = new JSONObject(total.toString());
+            } finally {
+                if (inputStream != null) inputStream.close();
             }
-            result = new JSONObject(total.toString());
         } catch (IOException | JSONException e) {
             Log.e(TAG, "Error while retrieving the json object from: " + url.toString());
+        } finally {
+            if (connection != null) connection.disconnect();
         }
         return result;
     }

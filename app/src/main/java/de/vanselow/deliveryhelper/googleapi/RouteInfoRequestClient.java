@@ -2,6 +2,7 @@ package de.vanselow.deliveryhelper.googleapi;
 
 import android.content.Context;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
@@ -32,6 +33,8 @@ public abstract class RouteInfoRequestClient<T> {
 
     private LatLng origin;
     private LatLng destination;
+
+    private RequestClient requestClient;
 
     public RouteInfoRequestClient(Context context) {
         this.context = context;
@@ -88,7 +91,7 @@ public abstract class RouteInfoRequestClient<T> {
             waypoints.append("|").append(latLng.latitude).append(",").append(latLng.longitude);
         }
         params.put("waypoints", waypoints.toString());
-        new RequestClient() {
+        requestClient = new RequestClient() {
             @Override
             protected void onPostExecute(JSONObject jsonObject) {
                 latestRouteInfo = null;
@@ -130,19 +133,28 @@ public abstract class RouteInfoRequestClient<T> {
                 }
                 callback.onRouteInfoResult(latestRouteInfo);
             }
-        }.execute("maps", "directions", params);
+        };
+        requestClient.execute("maps", "directions", params);
     }
 
     public void getRouteInfo(final ArrayList<T> locations, Callback<T> callback) {
         if (validData) {
             callback.onRouteInfoResult(latestRouteInfo);
         } else {
+            cancelRequest();
             requestRouteInfo(locations, callback);
         }
     }
 
     public void invalidateLatestRoute() {
+        cancelRequest();
         validData = false;
+    }
+
+    public void cancelRequest() {
+        if (requestClient != null && requestClient.getStatus() != AsyncTask.Status.FINISHED) {
+            requestClient.cancel(true);
+        }
     }
 
     protected abstract LatLng toLatLng(T item);
