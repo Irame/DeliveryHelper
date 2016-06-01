@@ -31,4 +31,6 @@
     <string name="do_you_want_to_delete">Möchten sie das wirklich löschen</string>
     <string name="no_route_found">Keine Route gefunden!</string>
     <string name="show_map">Karte anzeigen</string>
+    <string name="failed_retrieve_route">Beziehen der Routeninformationen fehlgeschlagen.</string>
+    <string name="failed_to_connect">Verbindung zu Google Services fehlgeschlagen.</string>
 </resources>

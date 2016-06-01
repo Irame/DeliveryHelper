@@ -183,7 +183,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             ContentValues values = new ContentValues();
             values.put(LOCATIONS_NAME, dl.name);
             values.put(LOCATIONS_ADDRESS, dl.address);
-            values.put(LOCATIONS_PLACEID, dl.placeid);
+            values.put(LOCATIONS_PLACEID, dl.placeId);
             values.put(LOCATIONS_LATITUDE, dl.latitude);
             values.put(LOCATIONS_LONGITUDE, dl.longitude);
             values.put(LOCATIONS_PRICE, dl.price);

@@ -24,17 +24,14 @@ public class RouteListAdapter extends BaseSwipeAdapter {
     private static final int TYPE_ITEM = 0;
     private static final int TYPE_EPTY_NOTE = 1;
 
-    private LayoutInflater layoutInflater;
-    private FragmentActivity activity;
-
-    private ArrayList<RouteModel> routes;
-    private String emptynoteText;
+    private final LayoutInflater layoutInflater;
+    private final FragmentActivity activity;
+    private final ArrayList<RouteModel> routes;
 
     public RouteListAdapter(FragmentActivity activity, ArrayList<RouteModel> routes) {
         this.activity = activity;
-        layoutInflater = LayoutInflater.from(activity);
         this.routes = routes;
-        emptynoteText = activity.getString(R.string.no_routes_existing);
+        this.layoutInflater = LayoutInflater.from(activity);
     }
 
     public void addItem(RouteModel route) {
@@ -84,7 +81,7 @@ public class RouteListAdapter extends BaseSwipeAdapter {
     @Override
     public Object getItem(int position) {
         if (routes.isEmpty())
-            return emptynoteText;
+            return activity.getString(R.string.no_routes_existing);
         else
             return routes.get(position);
     }
@@ -221,7 +218,7 @@ public class RouteListAdapter extends BaseSwipeAdapter {
 
         @Override
         public void setup(int position) {
-            emptynoteLabel.setText(emptynoteText);
+            emptynoteLabel.setText(activity.getString(R.string.no_routes_existing));
         }
     }
 }

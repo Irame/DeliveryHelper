@@ -28,18 +28,18 @@ public class LocationModel implements Parcelable {
     public long id;
     public String name;
     public String address;
-    public String placeid;
+    public String placeId;
     public double latitude;
     public double longitude;
     public float price;
     public String notes;
     public State state;
 
-    public LocationModel(long id, String name, String address, String placeid, double latitude, double longitude, float price, String notes, State state) {
+    public LocationModel(long id, String name, String address, String placeId, double latitude, double longitude, float price, String notes, State state) {
         this.id = id;
         this.name = name;
         this.address = address;
-        this.placeid = placeid;
+        this.placeId = placeId;
         this.latitude = latitude;
         this.longitude = longitude;
         this.price = price;
@@ -60,7 +60,7 @@ public class LocationModel implements Parcelable {
         this.id = otherLocation.id;
         this.name = otherLocation.name;
         this.address = otherLocation.address;
-        this.placeid = otherLocation.placeid;
+        this.placeId = otherLocation.placeId;
         this.latitude = otherLocation.latitude;
         this.longitude = otherLocation.longitude;
         this.price = otherLocation.price;
@@ -72,7 +72,7 @@ public class LocationModel implements Parcelable {
 
     public void setPlace(Place place) {
         this.address =  place.getAddress().toString();
-        this.placeid = place.getId();
+        this.placeId = place.getId();
         this.latitude = place.getLatLng().latitude;
         this.longitude = place.getLatLng().longitude;
     }
@@ -84,7 +84,7 @@ public class LocationModel implements Parcelable {
             result.put("id", id);
             result.put("name", name);
             result.put("address", address);
-            result.put("placeid", placeid);
+            result.put("placeId", placeId);
             result.put("latitude", latitude);
             result.put("longitude", longitude);
             result.put("price", price);
@@ -103,7 +103,7 @@ public class LocationModel implements Parcelable {
             if (json.has("id")) result.id = json.getLong("id");
             result.name = json.getString("name");
             result.address = json.getString("address");
-            result.placeid = json.getString("placeid");
+            result.placeId = json.getString("placeId");
             result.latitude = json.getDouble("latitude");
             result.longitude = json.getDouble("longitude");
             if (json.has("price")) result.price = (float) json.getDouble("price");
@@ -121,7 +121,7 @@ public class LocationModel implements Parcelable {
         id = in.readLong();
         name = in.readString();
         address = in.readString();
-        placeid = in.readString();
+        placeId = in.readString();
         latitude = in.readDouble();
         longitude = in.readDouble();
         price = in.readFloat();
@@ -134,7 +134,7 @@ public class LocationModel implements Parcelable {
         dest.writeLong(id);
         dest.writeString(name);
         dest.writeString(address);
-        dest.writeString(placeid);
+        dest.writeString(placeId);
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
         dest.writeFloat(price);
@@ -172,7 +172,7 @@ public class LocationModel implements Parcelable {
         if (Float.compare(that.price, price) != 0) return false;
         if (!name.equals(that.name)) return false;
         if (!address.equals(that.address)) return false;
-        if (!placeid.equals(that.placeid)) return false;
+        if (!placeId.equals(that.placeId)) return false;
         if (!notes.equals(that.notes)) return false;
         return state == that.state;
 
