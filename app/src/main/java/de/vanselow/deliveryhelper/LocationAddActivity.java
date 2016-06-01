@@ -46,22 +46,30 @@ public class LocationAddActivity extends AppCompatActivity {
         EditText priceInput = ((EditText) findViewById(R.id.location_add_price_input));
         EditText notesInput = ((EditText) findViewById(R.id.location_add_note_input));
 
-        Intent data = getIntent();
-        if (data != null) location = data.getParcelableExtra(LOCATION_RESULT_KEY);
-        if (location != null && location.hasValidId()) {
-            // Edit Location
-            if (nameInput != null) {
-                nameInput.setText(location.name);
-                nameInput.setSelection(location.name.length());
-            }
-            if (addressLabel != null) addressLabel.setText(location.address);
-            if (priceInput != null) priceInput.setText(Float.toString(location.price));
-            if (notesInput != null) notesInput.setText(location.notes);
-
-            setTitle(R.string.edit_location);
+        if (savedInstanceState != null) {
+            location = savedInstanceState.getParcelable(LOCATION_RESULT_KEY);
+            if (location != null && addressLabel != null)
+                addressLabel.setText(location.address);
+            else
+                location = new LocationModel();
         } else {
-            // Add Location
-            location = new LocationModel();
+            Intent data = getIntent();
+            if (data != null) location = data.getParcelableExtra(LOCATION_RESULT_KEY);
+            if (location != null && location.hasValidId()) {
+                // Edit Location
+                if (nameInput != null) {
+                    nameInput.setText(location.name);
+                    nameInput.setSelection(location.name.length());
+                }
+                if (addressLabel != null) addressLabel.setText(location.address);
+                if (priceInput != null) priceInput.setText(Float.toString(location.price));
+                if (notesInput != null) notesInput.setText(location.notes);
+
+                setTitle(R.string.edit_location);
+            } else {
+                // Add Location
+                location = new LocationModel();
+            }
         }
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 
@@ -88,6 +96,12 @@ public class LocationAddActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(LOCATION_RESULT_KEY, location);
     }
 
     @Override
