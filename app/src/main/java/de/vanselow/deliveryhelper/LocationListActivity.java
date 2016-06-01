@@ -98,6 +98,7 @@ public class LocationListActivity extends AppCompatActivity {
             }
         };
         routeInfoRequestClient.setDestination(ROUTE_END);
+        routeInfoRequestClient.attachToGeoLocationChanges();
 
         MapsInitializer.initialize(getApplicationContext());
         openDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_open_delivery));
@@ -106,6 +107,12 @@ public class LocationListActivity extends AppCompatActivity {
         setResult(Activity.RESULT_CANCELED, getIntent());
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        routeInfoRequestClient.detachToGeoLocationChanges();
+        routeInfoRequestClient.cancelRequest();
+    }
 
     @Override
     public void onBackPressed() {

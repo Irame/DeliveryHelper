@@ -35,21 +35,29 @@ public abstract class RouteInfoRequestClient<T> {
     private LatLng destination;
 
     private RequestClient requestClient;
+    private GeoLocationCache.Listener geoLocationChangedListener;
 
     public RouteInfoRequestClient(Context context) {
         this.context = context;
-        GeoLocationCache.getIncetance(context).addGeoLocationListener(
-                new GeoLocationCache.Listener() {
-                    @Override
-                    public void onGeoLocationChanged(Location location) {
-                        invalidateLatestRoute();
-                    }
-                });
+        geoLocationChangedListener = new GeoLocationCache.Listener() {
+            @Override
+            public void onGeoLocationChanged(Location location) {
+                invalidateLatestRoute();
+            }
+        };
         validData = false;
 
         failedToConnectToast = Toast.makeText(context, R.string.failed_to_connect, Toast.LENGTH_SHORT);
         noRouteFoundToast = Toast.makeText(context, context.getString(R.string.no_route_found), Toast.LENGTH_SHORT);
         errorGettingRouteToast = Toast.makeText(context, R.string.failed_retrieve_route, Toast.LENGTH_SHORT);
+    }
+
+    public void attachToGeoLocationChanges() {
+        GeoLocationCache.getIncetance(context).addGeoLocationListener(geoLocationChangedListener);
+    }
+
+    public void detachToGeoLocationChanges() {
+        GeoLocationCache.getIncetance(context).removeGeoLocationListener(geoLocationChangedListener);
     }
 
     public void setOrigin(LatLng origin) {
