@@ -170,7 +170,9 @@ public class LocationListActivity extends AppCompatActivity {
                     @Override
                     public void onRouteInfoResult(RouteInfo<LocationModel> routeInfo) {
                         if (routeInfo != null) {
-                            Collections.sort(locations, new LocationComparator(routeInfo.waypointOrder));
+                            LocationComparator comparator = new LocationComparator(routeInfo.waypointOrder);
+                            Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), comparator);
+                            Collections.sort(routeModel.locations, comparator);
                             locationListAdapter.notifyDataSetChanged();
                         }
                         item.getActionView().clearAnimation();
@@ -262,7 +264,9 @@ public class LocationListActivity extends AppCompatActivity {
                     @Override
                     public void onRouteInfoResult(@Nullable RouteInfo<LocationModel> routeInfo) {
                         if (routeInfo != null) {
-                            Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), new LocationComparator(routeInfo.waypointOrder));
+                            LocationComparator comparator = new LocationComparator(routeInfo.waypointOrder);
+                            Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), comparator);
+                            Collections.sort(routeModel.locations, comparator);
                             locationListAdapter.notifyDataSetChanged();
                             synchronized (mapRouteData) {
                                 mapRouteData.polyline = routeInfo.overviewPolyline;
@@ -312,7 +316,14 @@ public class LocationListActivity extends AppCompatActivity {
 
         @Override
         public int compare(LocationModel lhs, LocationModel rhs) {
-            return Integer.compare(orderMap.get(lhs), orderMap.get(rhs));
+            if (lhs.state == LocationModel.State.OPEN && rhs.state == LocationModel.State.OPEN)
+                return Integer.compare(orderMap.get(lhs), orderMap.get(rhs));
+            else if (lhs.state == LocationModel.State.OPEN)
+                return -1;
+            else if (rhs.state == LocationModel.State.OPEN)
+                return 1;
+            else
+                return lhs.name.compareTo(rhs.name);
         }
     }
 }
