@@ -13,7 +13,7 @@
         android:icon="@drawable/ic_menu_sort"
         android:title="@string/sort_open_locations"
         android:onClick="sortLocationsOnClick"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
     <item
         android:id="@+id/action_location_add"
         android:icon="@drawable/ic_menu_add"

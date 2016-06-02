@@ -10,8 +10,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ListView;
 
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 
 import de.vanselow.deliveryhelper.utils.DatabaseAsync;
@@ -21,10 +19,6 @@ public class RouteListActivity extends AppCompatActivity {
     public static final int ADD_ROUTE_REQUEST_CODE = 1;
     public static final int EDIT_ROUTE_REQUEST_CODE = 2;
     public static final int EXIT_LOC_LIST_REQUEST_CODE = 3;
-
-    private static final String ROUTE_LIST_KEY = "routes";
-    private static final String CHECK_MODE_KEY = "checkMode";
-    private static final String CHECKED_LIST_KEY = "checkedList";
 
     private RouteListAdapter routeListAdapter;
     private boolean activityVisible;
@@ -37,9 +31,9 @@ public class RouteListActivity extends AppCompatActivity {
         activityVisible = false;
 
         RemoteAccess.start(this, 1337);
-        RemoteAccess.setRoutesDataReceivedListener(new RemoteAccess.DataReceivedListener() {
+        RemoteAccess.setRoutesDataReceivedListener(new RemoteAccess.RoutesReceivedListener(this) {
             @Override
-            public void onDataReceived(JSONObject jsonObject) {
+            public void onRoutesReceived(ArrayList<RouteModel> routes) {
                 if (activityVisible) updateRouteListData();
             }
         });
@@ -79,6 +73,7 @@ public class RouteListActivity extends AppCompatActivity {
         super.onDestroy();
         // for external sqlite browser
         SQLiteStudioService.instance().stop();
+        RemoteAccess.stop();
     }
 
     @Override

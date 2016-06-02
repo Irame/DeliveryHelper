@@ -112,6 +112,18 @@ public class LocationListActivity extends AppCompatActivity {
         openDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_open_delivery));
         deliveredDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_delivered_delivery));
 
+        RemoteAccess.setLocationsDataReceivedListener(new RemoteAccess.LocationsReceivedListener(this) {
+            @Override
+            public void onLocationsReceived(ArrayList<LocationModel> locations) {
+                for (LocationModel location : locations) {
+                    if (location.id < 0) {
+                        addLocationToRoute(location);
+                    }
+                }
+                autosortIfOptionSelected();
+            }
+        });
+
         setResult(Activity.RESULT_CANCELED, getIntent());
     }
 
@@ -120,6 +132,7 @@ public class LocationListActivity extends AppCompatActivity {
         super.onDestroy();
         routeInfoRequestClient.detachToGeoLocationChanges();
         routeInfoRequestClient.cancelRequest();
+        RemoteAccess.setLocationsDataReceivedListener(null);
     }
 
     @Override
@@ -173,16 +186,20 @@ public class LocationListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void addLocationToRoute(LocationModel locationModel) {
+        DatabaseAsync.getInstance(this).addOrUpdateRouteLocation(locationModel, routeModel.id);
+        routeModel.locations.add(locationModel);
+        locationListAdapter.addItem(locationModel);
+        routeInfoRequestClient.invalidateLatestRoute(true);
+    }
+
     @Override
     protected void onActivityResult(final int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == ADD_LOCATION_REQUEST_CODE) {
                 LocationModel newLocation = data.getParcelableExtra(LocationAddActivity.LOCATION_RESULT_KEY);
-                DatabaseAsync.getInstance(this).addOrUpdateRouteLocation(newLocation, routeModel.id);
-                routeModel.locations.add(newLocation);
-                locationListAdapter.addItem(newLocation);
-                routeInfoRequestClient.invalidateLatestRoute(true);
+                addLocationToRoute(newLocation);
                 autosortIfOptionSelected();
             } else if (requestCode == EDIT_LOCATION_REQUEST_CODE) {
                 LocationModel editedLocation = data.getParcelableExtra(LocationAddActivity.LOCATION_RESULT_KEY);
