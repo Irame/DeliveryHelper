@@ -58,12 +58,6 @@ public class RouteListActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onRestart() {
-        super.onRestart();
-        routeListAdapter.updateAllRoutesFromDatabase();
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         // for external sqlite browser

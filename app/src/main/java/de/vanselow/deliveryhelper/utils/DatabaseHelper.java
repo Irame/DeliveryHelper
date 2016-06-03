@@ -114,7 +114,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return route.id;
     }
 
-    public RouteModel getRouteById(long routeId) {
+    public RouteModel getRouteById(long routeId, boolean withLocations) {
         SQLiteDatabase db = getReadableDatabase();
 
         Cursor cursor = db.query(ROUTES_TABLE_NAME,
@@ -126,9 +126,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 null,   // no ordering
                 null);  // no limit
 
+        RouteModel routeModel = null;
         try {
             if (cursor.moveToFirst()) {
-                return new RouteModel(
+                routeModel = new RouteModel(
                         cursor.getLong(cursor.getColumnIndex(ROUTES_ID)),
                         cursor.getString(cursor.getColumnIndex(ROUTES_NAME)),
                         cursor.getLong(cursor.getColumnIndex(ROUTES_DATE))
@@ -141,7 +142,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.close();
             }
         }
-        return null;
+
+        if (withLocations && routeModel != null) routeModel.locations = getAllRouteLocations(routeId);
+        return routeModel;
     }
 
     public ArrayList<RouteModel> getAllRoutes() {

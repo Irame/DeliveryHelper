@@ -35,11 +35,11 @@ public class DatabaseAsync {
         }.execute();
     }
 
-    public void getRouteById(final long routeId, Callback<RouteModel> callback) {
+    public void getRouteById(final long routeId, final boolean withLocations, Callback<RouteModel> callback) {
         new Task<RouteModel>(callback) {
             @Override
             protected RouteModel doInBackground(Void... params) {
-                return db.getRouteById(routeId);
+                return db.getRouteById(routeId, withLocations);
             }
         }.execute();
     }

@@ -48,7 +48,7 @@ public class RouteAddActivity extends AppCompatActivity {
             long routeId = -1;
             if (data != null) routeId = data.getLongExtra(ROUTE_ID_KEY, -1);
             if (routeId >= 0) {
-                route = DatabaseHelper.getInstance(this).getRouteById(routeId);
+                route = DatabaseHelper.getInstance(this).getRouteById(routeId, false);
                 if (route == null) {
                     finish();
                     return;

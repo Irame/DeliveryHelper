@@ -38,7 +38,7 @@ public class RouteListAdapter extends BaseSwipeAdapter {
 
     public void updateRouteFromDatabase(final long routeId) {
         if (routeId < 0) return;
-        DatabaseAsync.getInstance(activity).getRouteById(routeId, new DatabaseAsync.Callback<RouteModel>() {
+        DatabaseAsync.getInstance(activity).getRouteById(routeId, true, new DatabaseAsync.Callback<RouteModel>() {
             @Override
             public void onPostExecute(RouteModel routeModel) {
                 boolean found = false;
