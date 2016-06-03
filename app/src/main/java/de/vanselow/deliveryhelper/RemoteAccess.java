@@ -7,6 +7,7 @@ import android.util.Log;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.AutocompletePredictionBuffer;
 import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
 import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
@@ -114,9 +115,10 @@ public class RemoteAccess {
                 final String[] cells = row.split(";");
                 if (cells.length > 3 || cells.length < 2) continue;
                 String address = cells[1];
-                AutocompletePredictionBuffer buffer = Places.GeoDataApi.getAutocompletePredictions(googleApiClient, address, null, null).await();
-                if (buffer.getCount() < 1) continue;
-                final Place geoPlace = Places.GeoDataApi.getPlaceById(googleApiClient, buffer.get(0).getPlaceId()).await().get(0);
+                AutocompletePredictionBuffer predictionBuffer = Places.GeoDataApi.getAutocompletePredictions(googleApiClient, address, null, null).await();
+                if (predictionBuffer.getCount() < 1) continue;
+                PlaceBuffer placeBuffer = Places.GeoDataApi.getPlaceById(googleApiClient, predictionBuffer.get(0).getPlaceId()).await();
+                final Place geoPlace = placeBuffer.get(0);
                 LocationModel locationModel = new LocationModel() {{
                     name = cells[0];
                     place = new Place(geoPlace);
@@ -126,6 +128,8 @@ public class RemoteAccess {
                         Log.w(TAG, "Could not parse price for a location. (" + name + "; "  + place.address + ")");
                     }
                 }};
+                placeBuffer.release();
+                predictionBuffer.release();
                 locationArrayList.add(locationModel);
             }
             onLocationsDataReceived(locationArrayList);
