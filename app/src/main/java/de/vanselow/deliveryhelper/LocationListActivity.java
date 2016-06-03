@@ -52,6 +52,7 @@ import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 public class LocationListActivity extends AppCompatActivity {
     public static final int ADD_LOCATION_REQUEST_CODE = 1;
     public static final int EDIT_LOCATION_REQUEST_CODE = 2;
+    public static final int EXIT_SETTINGS_REQUEST_CODE = 3;
 
     public static final String ROUTE_ID_KEY = "routeId";
     public static final String IS_SORTING_KEY = "isSoring";
@@ -186,6 +187,9 @@ public class LocationListActivity extends AppCompatActivity {
                 if (locationId > 0) locationListAdapter.updateLocationFromDatabase(locationId);
             }
         }
+        if (requestCode == EXIT_SETTINGS_REQUEST_CODE) {
+            autosortIfOptionSelected();
+        }
     }
 
     public void addLocationOnClick(MenuItem item) {
@@ -202,7 +206,7 @@ public class LocationListActivity extends AppCompatActivity {
 
     public void openSettingsOnClick(MenuItem item) {
         hideMap();
-        startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+        startActivityForResult(new Intent(getApplicationContext(), SettingsActivity.class), EXIT_SETTINGS_REQUEST_CODE);
     }
 
     private void autosortIfOptionSelected() {
