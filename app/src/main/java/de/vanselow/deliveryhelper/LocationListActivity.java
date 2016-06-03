@@ -57,8 +57,6 @@ public class LocationListActivity extends AppCompatActivity {
 
     private static final LatLng ROUTE_END = new LatLng(49.982545, 10.097857);
 
-    private static final String AUTOSORT_OPTION_PREFKEY = "autosortOption";
-
     private MapFragment mapFragment;
     private RouteInfoRequestClient<LocationModel> routeInfoRequestClient;
     private LocationListAdapter locationListAdapter;
@@ -179,26 +177,6 @@ public class LocationListActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem autosortOption = menu.findItem(R.id.action_autosort_locations);
-        autosortOption.setChecked(getPreferences(0).getBoolean(AUTOSORT_OPTION_PREFKEY, false));
-        return super.onPrepareOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_autosort_locations) {
-            boolean checked = !item.isChecked();
-            item.setChecked(checked);
-            SharedPreferences.Editor editor = getPreferences(0).edit();
-            editor.putBoolean(AUTOSORT_OPTION_PREFKEY, checked);
-            editor.apply();
-            if (checked) updateRouteInfo();
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     protected void onActivityResult(final int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
@@ -221,8 +199,13 @@ public class LocationListActivity extends AppCompatActivity {
         updateRouteInfo();
     }
 
+    public void openSettingsOnClick(MenuItem item) {
+        hideMap();
+        startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+    }
+
     private void autosortIfOptionSelected() {
-        if (getPreferences(0).getBoolean(AUTOSORT_OPTION_PREFKEY, false)) {
+        if (getSharedPreferences(SettingsActivity.SHARED_PREFERENCES_NAME, MODE_PRIVATE).getBoolean(SettingsActivity.AUTOSORT_OPTION_PREFKEY, false)) {
             updateRouteInfo();
         }
     }

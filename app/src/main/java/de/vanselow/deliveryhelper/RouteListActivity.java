@@ -76,6 +76,10 @@ public class RouteListActivity extends AppCompatActivity {
         startActivityForResult(new Intent(getApplicationContext(), RouteAddActivity.class), ADD_ROUTE_REQUEST_CODE);
     }
 
+    public void openSettingsOnClick(MenuItem item) {
+        startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

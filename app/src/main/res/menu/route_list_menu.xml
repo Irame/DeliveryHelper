@@ -8,4 +8,10 @@
         android:title="@string/add_route"
         android:onClick="addRouteOnClick"
         app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_location_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/settings"
+        android:onClick="openSettingsOnClick"
+        app:showAsAction="ifRoom"/>
 </menu>

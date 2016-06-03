@@ -25,6 +25,8 @@
             android:label="@string/locations"/>
         <activity android:name=".LocationAddActivity"
             android:label="@string/add_location"/>
+        <activity android:name=".SettingsActivity"
+            android:label="@string/settings"/>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_geo_api_key"/>

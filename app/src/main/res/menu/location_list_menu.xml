@@ -21,8 +21,9 @@
         android:onClick="addLocationOnClick"
         app:showAsAction="always"/>
     <item
-        android:id="@+id/action_autosort_locations"
-        android:title="@string/autosort_open_locations"
-        android:checkable="true"
-        app:showAsAction="never"/>
+        android:id="@+id/action_location_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/settings"
+        android:onClick="openSettingsOnClick"
+        app:showAsAction="ifRoom"/>
 </menu>
