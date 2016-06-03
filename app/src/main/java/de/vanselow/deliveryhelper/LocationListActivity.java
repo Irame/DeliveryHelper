@@ -90,8 +90,7 @@ public class LocationListActivity extends AppCompatActivity {
             return;
         }
         locationListAdapter = new LocationListAdapter(this, routeId);
-        AlphaInAnimationAdapter animationAdapter = new AlphaInAnimationAdapter(locationListAdapter);
-        StickyListHeadersAdapterDecorator stickyListHeadersAdapterDecorator = new StickyListHeadersAdapterDecorator(animationAdapter);
+        StickyListHeadersAdapterDecorator stickyListHeadersAdapterDecorator = new StickyListHeadersAdapterDecorator(locationListAdapter);
 
         StickyListHeadersListView locationListView = (StickyListHeadersListView) findViewById(R.id.location_list);
         assert locationListView != null;

@@ -5,6 +5,18 @@
     android:layout_height="match_parent"
     tools:context=".LocationListActivity">
 
+    <RelativeLayout
+        android:id="@+id/location_list_loading_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center" >
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true" />
+    </RelativeLayout>
+
     <se.emilsjolander.stickylistheaders.StickyListHeadersListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

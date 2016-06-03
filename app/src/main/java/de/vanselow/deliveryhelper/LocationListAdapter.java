@@ -118,6 +118,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
     }
 
     public void updateAllLocationsFromDatabase() {
+        activity.findViewById(R.id.location_list_loading_panel).setVisibility(View.VISIBLE);
         DatabaseAsync.getInstance(activity).getAllRouteLocations(routeId, new DatabaseAsync.Callback<ArrayList<LocationModel>>() {
             @Override
             public void onPostExecute(ArrayList<LocationModel> locationModels) {
@@ -129,6 +130,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
                 }
                 onItemCollectionChanged();
                 sortDeliveredAlphabetically();
+                activity.findViewById(R.id.location_list_loading_panel).setVisibility(View.GONE);
             }
         });
     }
