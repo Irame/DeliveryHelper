@@ -90,15 +90,9 @@ public class RemoteAccess {
             try {
                 JSONObject requestJson = (JSONObject) request.getBody().get();
                 JSONArray routes = requestJson.getJSONArray("routes");
-                DatabaseHelper dbHelper = DatabaseHelper.getInstance(context);
                 ArrayList<RouteModel> routeArrayList = new ArrayList<>();
                 for (int i = 0; i < routes.length(); i++) {
-                    RouteModel route = RouteModel.fromJson(routes.getJSONObject(i));
-                    dbHelper.addOrUpdateRoute(route);
-                    for (LocationModel location : route.locations) {
-                        dbHelper.addOrUpdateRouteLocation(location, route.id);
-                    }
-                    routeArrayList.add(route);
+                    routeArrayList.add(RouteModel.fromJson(routes.getJSONObject(i)));
                 }
                 onRoutesDataReceived(routeArrayList);
             } catch (Exception e) {
@@ -122,14 +116,14 @@ public class RemoteAccess {
                 String address = cells[1];
                 AutocompletePredictionBuffer buffer = Places.GeoDataApi.getAutocompletePredictions(googleApiClient, address, null, null).await();
                 if (buffer.getCount() < 1) continue;
-                final Place place = Places.GeoDataApi.getPlaceById(googleApiClient, buffer.get(0).getPlaceId()).await().get(0);
+                final Place geoPlace = Places.GeoDataApi.getPlaceById(googleApiClient, buffer.get(0).getPlaceId()).await().get(0);
                 LocationModel locationModel = new LocationModel() {{
                     name = cells[0];
-                    setPlace(place);
+                    place = new Place(geoPlace);
                     try {
                         if (cells.length == 3) price = Float.parseFloat(cells[2]);
                     } catch (NumberFormatException e) {
-                        Log.w(TAG, "Could not parse price for a location. (" + name + "; "  + address + ")");
+                        Log.w(TAG, "Could not parse price for a location. (" + name + "; "  + place.address + ")");
                     }
                 }};
                 locationArrayList.add(locationModel);

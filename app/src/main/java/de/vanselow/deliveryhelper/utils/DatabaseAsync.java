@@ -35,6 +35,15 @@ public class DatabaseAsync {
         }.execute();
     }
 
+    public void getRouteById(final long routeId, Callback<RouteModel> callback) {
+        new Task<RouteModel>(callback) {
+            @Override
+            protected RouteModel doInBackground(Void... params) {
+                return db.getRouteById(routeId);
+            }
+        }.execute();
+    }
+
     public void getAllRoutes(Callback<ArrayList<RouteModel>> callback) {
         new Task<ArrayList<RouteModel>>(callback) {
             @Override
@@ -75,6 +84,15 @@ public class DatabaseAsync {
             @Override
             protected Long doInBackground(Void... params) {
                 return db.addOrUpdateRouteLocation(dl, routeId);
+            }
+        }.execute();
+    }
+
+    public void getRouteLocationById(final long locationId, Callback<LocationModel> callback) {
+        new Task<LocationModel>(callback) {
+            @Override
+            protected LocationModel doInBackground(Void... params) {
+                return db.getRouteLocationById(locationId);
             }
         }.execute();
     }

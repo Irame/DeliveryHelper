@@ -18,8 +18,10 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 
 import de.vanselow.deliveryhelper.utils.DatabaseAsync;
+import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 import de.vanselow.deliveryhelper.utils.Utils;
 import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 
@@ -37,11 +39,13 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
 
     private LayoutInflater layoutInflater;
     private FragmentActivity activity;
-    private RouteModel routeModel;
+    private long routeId;
 
-    public LocationListAdapter(FragmentActivity activity, RouteModel route) {
+    ItemCollectionChangedListener itemCollectionChangedListener;
+
+    public LocationListAdapter(FragmentActivity activity, long routeId) {
         this.activity = activity;
-        routeModel = route;
+        this.routeId = routeId;
         layoutInflater = LayoutInflater.from(activity);
         allValues = new ArrayList<>();
         sections = new ArrayList<>();
@@ -51,10 +55,6 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
             sections.add(activity.getString(state.sectionStringId));
             emptySectionTexts.add(activity.getString(state.emptyListStringId));
         }
-        for (LocationModel dl : route.locations) {
-            allValues.get(dl.state.ordinal()).add(dl);
-        }
-        sortDeliveredAlphabetically();
     }
 
     @Override
@@ -85,31 +85,51 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         return new ItemInfo(section, position, type);
     }
 
-    public void addItem(LocationModel dl) {
-        allValues.get(dl.state.ordinal()).add(dl);
-        if (dl.state == LocationModel.State.DELIVERED) sortDeliveredAlphabetically();
-        notifyDataSetChanged();
-    }
-
-    public LocationModel updateItem(LocationModel otherLocation) {
-        for (ArrayList<LocationModel> sectionValues : allValues) {
-            for (LocationModel location : sectionValues) {
-                if (location.id == otherLocation.id && location.update(otherLocation)) {
-                    notifyDataSetChanged();
-                    return location;
+    public void updateLocationFromDatabase(final long locationId) {
+        if (locationId < 0) return;
+        DatabaseAsync.getInstance(activity).getRouteLocationById(locationId, new DatabaseAsync.Callback<LocationModel>() {
+            @Override
+            public void onPostExecute(LocationModel locationModel) {
+                boolean found = false;
+                for (int section = 0; section < allValues.size(); section++) {
+                    ArrayList<LocationModel> sectionValues = allValues.get(section);
+                    for (Iterator<LocationModel> iterator = sectionValues.iterator(); iterator.hasNext(); ) {
+                        LocationModel location = iterator.next();
+                        if (location.id == locationId) {
+                            if (locationModel == null || locationModel.state.ordinal() != section) {
+                                if (locationModel == null) found = true;
+                                iterator.remove();
+                            } else {
+                                found = true;
+                                location.update(locationModel);
+                            }
+                            onItemCollectionChanged();
+                            break;
+                        }
+                    }
+                }
+                if (!found) {
+                    allValues.get(locationModel.state.ordinal()).add(locationModel);
+                    onItemCollectionChanged();
                 }
             }
-        }
-        return null;
+        });
     }
 
-    public LocationModel removeItem(int position) {
-        ItemInfo itemInfo = getItemInfo(position);
-        LocationModel removedLoc = null;
-        if (itemInfo.isItem())
-            removedLoc = allValues.get(itemInfo.section).remove(itemInfo.relativeItemPos);
-        notifyDataSetChanged();
-        return removedLoc;
+    public void updateAllLocationsFromDatabase() {
+        DatabaseAsync.getInstance(activity).getAllRouteLocations(routeId, new DatabaseAsync.Callback<ArrayList<LocationModel>>() {
+            @Override
+            public void onPostExecute(ArrayList<LocationModel> locationModels) {
+                for (ArrayList<LocationModel> sectionValues : allValues) {
+                    sectionValues.clear();
+                }
+                for (LocationModel location : locationModels) {
+                    allValues.get(location.state.ordinal()).add(location);
+                }
+                onItemCollectionChanged();
+                sortDeliveredAlphabetically();
+            }
+        });
     }
 
     @Override
@@ -235,6 +255,20 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         }
     }
 
+    public interface ItemCollectionChangedListener {
+        void onChanged();
+    }
+
+    public void setItemCollectionChangedListener(ItemCollectionChangedListener listener) {
+        itemCollectionChangedListener = listener;
+    }
+
+    public void onItemCollectionChanged() {
+        notifyDataSetChanged();
+        itemCollectionChangedListener.onChanged();
+        sortDeliveredAlphabetically();
+    }
+
     public void sortDeliveredAlphabetically() {
         ArrayList<LocationModel> deliveredLocations = allValues.get(LocationModel.State.DELIVERED.ordinal());
         Collections.sort(deliveredLocations, new Comparator<LocationModel>() {
@@ -263,7 +297,6 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         public TextView priceLabel;
         public TextView notesLabel;
 
-        private int position;
         private LocationModel loc;
 
         public ItemViewHolder(View itemView) {
@@ -295,45 +328,44 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
                 notifyDataSetChanged();
             } else if (v.getId() == deleteButton.getId()) {
                 swipeLayout.close();
-                LocationModel loc = (LocationModel) getItem(position);
                 Utils.deleteAlert(activity, loc.name, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        LocationModel loc = removeItem(position);
-                        routeModel.locations.remove(loc);
-                        DatabaseAsync.getInstance(activity).deleteRouteLocation(loc);
+                        DatabaseHelper.getInstance(activity).deleteRouteLocation(loc);
+                        updateLocationFromDatabase(loc.id);
                         dialog.dismiss();
                     }
                 }).show();
             } else if (v.getId() == editButton.getId()) {
                 Intent intent = new Intent(activity.getApplicationContext(), LocationAddActivity.class);
-                intent.putExtra(LocationAddActivity.LOCATION_RESULT_KEY, loc);
+                intent.putExtra(LocationAddActivity.LOCATION_ID_KEY, loc.id);
+                intent.putExtra(LocationAddActivity.ROUTE_ID_KEY, routeId);
                 activity.startActivityForResult(intent, LocationListActivity.EDIT_LOCATION_REQUEST_CODE);
                 swipeLayout.close();
             } else if (v.getId() == checkButton.getId()) {
                 swipeLayout.close(false);
-                LocationModel loc = removeItem(position);
                 loc.state = LocationModel.State.DELIVERED;
-                DatabaseAsync.getInstance(activity).updateRouteLocation(loc);
-                addItem(loc);
+                DatabaseAsync.getInstance(activity).updateRouteLocation(loc, new DatabaseAsync.Callback<Long>() {
+                    @Override
+                    public void onPostExecute(Long locationId) {
+                        updateLocationFromDatabase(locationId);
+                    }
+                });
             }
         }
 
         @Override
         public boolean onLongClick(View v) {
-            LocationModel loc = (LocationModel) getItem(position);
-            Utils.startNavigation(activity, new LatLng(loc.latitude, loc.longitude));
+            Utils.startNavigation(activity, new LatLng(loc.place.latitude, loc.place.longitude));
             return true;
         }
 
         public void setup(int position) {
-            this.position = position;
-
             ItemInfo itemInfo = getItemInfo(position);
             loc = allValues.get(itemInfo.section).get(itemInfo.relativeItemPos);
 
             nameLabel.setText(loc.name);
-            addressLabel.setText(loc.address);
+            addressLabel.setText(loc.place.address);
 
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
             priceLabel.setText(currencyFormat.format(loc.price));

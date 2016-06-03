@@ -3,6 +3,7 @@ package de.vanselow.deliveryhelper;
 import android.Manifest;
 import android.app.Activity;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -51,7 +52,7 @@ public class LocationListActivity extends AppCompatActivity {
     public static final int ADD_LOCATION_REQUEST_CODE = 1;
     public static final int EDIT_LOCATION_REQUEST_CODE = 2;
 
-    public static final String ROUTE_KEY = "route";
+    public static final String ROUTE_ID_KEY = "routeId";
     public static final String IS_SORTING_KEY = "isSoring";
 
     private static final LatLng ROUTE_END = new LatLng(49.982545, 10.097857);
@@ -61,7 +62,7 @@ public class LocationListActivity extends AppCompatActivity {
     private MapFragment mapFragment;
     private RouteInfoRequestClient<LocationModel> routeInfoRequestClient;
     private LocationListAdapter locationListAdapter;
-    private RouteModel routeModel;
+    private long routeId = -1;
     private boolean isSorting = false;
 
     private BitmapDescriptor openDeliveryMarkerIcon;
@@ -78,17 +79,17 @@ public class LocationListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_location_list);
 
         if (savedInstanceState != null) {
-            routeModel = savedInstanceState.getParcelable(ROUTE_KEY);
+            routeId = savedInstanceState.getLong(ROUTE_ID_KEY, -1);
             isSorting = savedInstanceState.getBoolean(IS_SORTING_KEY);
         }
-        if (routeModel == null) {
-            routeModel = getIntent().getParcelableExtra(ROUTE_KEY);
+        if (routeId < 0) {
+            routeId = getIntent().getLongExtra(ROUTE_ID_KEY, -1);
         }
-        if (routeModel.id < 0) {
+        if (routeId < 0) {
             finish();
             return;
         }
-        locationListAdapter = new LocationListAdapter(this, routeModel);
+        locationListAdapter = new LocationListAdapter(this, routeId);
         AlphaInAnimationAdapter animationAdapter = new AlphaInAnimationAdapter(locationListAdapter);
         StickyListHeadersAdapterDecorator stickyListHeadersAdapterDecorator = new StickyListHeadersAdapterDecorator(animationAdapter);
 
@@ -100,27 +101,39 @@ public class LocationListActivity extends AppCompatActivity {
         routeInfoRequestClient = new RouteInfoRequestClient<LocationModel>(getApplicationContext()) {
             @Override
             public LatLng toLatLng(LocationModel item) {
-                return new LatLng(item.latitude, item.longitude);
+                return new LatLng(item.place.latitude, item.place.longitude);
             }
         };
         routeInfoRequestClient.setDestination(ROUTE_END);
         routeInfoRequestClient.attachToGeoLocationChanges();
 
-        autosortIfOptionSelected();
+        locationListAdapter.setItemCollectionChangedListener(new LocationListAdapter.ItemCollectionChangedListener() {
+            @Override
+            public void onChanged() {
+                routeInfoRequestClient.invalidateLatestRoute(true);
+                autosortIfOptionSelected();
+            }
+        });
+        locationListAdapter.updateAllLocationsFromDatabase();
 
         MapsInitializer.initialize(getApplicationContext());
         openDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_open_delivery));
         deliveredDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_delivered_delivery));
 
+        final Context context = this;
         RemoteAccess.setLocationsDataReceivedListener(new RemoteAccess.LocationsReceivedListener(this) {
             @Override
             public void onLocationsReceived(ArrayList<LocationModel> locations) {
                 for (LocationModel location : locations) {
                     if (location.id < 0) {
-                        addLocationToRoute(location);
+                        DatabaseAsync.getInstance(context).addOrUpdateRouteLocation(location, routeId, new DatabaseAsync.Callback<Long>() {
+                            @Override
+                            public void onPostExecute(Long locationId) {
+                                locationListAdapter.updateLocationFromDatabase(locationId);
+                            }
+                        });
                     }
                 }
-                autosortIfOptionSelected();
             }
         });
 
@@ -145,7 +158,7 @@ public class LocationListActivity extends AppCompatActivity {
         }
 
         Intent data = new Intent();
-        data.putExtra(ROUTE_KEY, routeModel);
+        data.putExtra(ROUTE_ID_KEY, routeId);
         setResult(Activity.RESULT_OK, data);
         super.onBackPressed();
     }
@@ -153,7 +166,7 @@ public class LocationListActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(ROUTE_KEY, routeModel);
+        outState.putLong(ROUTE_ID_KEY, routeId);
         outState.putBoolean(IS_SORTING_KEY, isSorting);
     }
 
@@ -186,35 +199,22 @@ public class LocationListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void addLocationToRoute(LocationModel locationModel) {
-        DatabaseAsync.getInstance(this).addOrUpdateRouteLocation(locationModel, routeModel.id);
-        routeModel.locations.add(locationModel);
-        locationListAdapter.addItem(locationModel);
-        routeInfoRequestClient.invalidateLatestRoute(true);
-    }
-
     @Override
     protected void onActivityResult(final int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == ADD_LOCATION_REQUEST_CODE) {
-                LocationModel newLocation = data.getParcelableExtra(LocationAddActivity.LOCATION_RESULT_KEY);
-                addLocationToRoute(newLocation);
-                autosortIfOptionSelected();
-            } else if (requestCode == EDIT_LOCATION_REQUEST_CODE) {
-                LocationModel editedLocation = data.getParcelableExtra(LocationAddActivity.LOCATION_RESULT_KEY);
-                LocationModel updatedLocation = locationListAdapter.updateItem(editedLocation);
-                routeInfoRequestClient.invalidateLatestRoute(true);
-                if (updatedLocation != null)
-                    DatabaseAsync.getInstance(this).addOrUpdateRouteLocation(updatedLocation, routeModel.id);
-                autosortIfOptionSelected();
+            if (requestCode == ADD_LOCATION_REQUEST_CODE || requestCode == EDIT_LOCATION_REQUEST_CODE) {
+                long locationId = data.getLongExtra(LocationAddActivity.LOCATION_ID_KEY, -1);
+                if (locationId > 0) locationListAdapter.updateLocationFromDatabase(locationId);
             }
         }
     }
 
     public void addLocationOnClick(MenuItem item) {
         hideMap();
-        startActivityForResult(new Intent(getApplicationContext(), LocationAddActivity.class), ADD_LOCATION_REQUEST_CODE);
+        Intent intent = new Intent(getApplicationContext(), LocationAddActivity.class);
+        intent.putExtra(LocationAddActivity.ROUTE_ID_KEY, routeId);
+        startActivityForResult(intent, ADD_LOCATION_REQUEST_CODE);
     }
 
     public void sortLocationsOnClick(final MenuItem item) {
@@ -259,7 +259,7 @@ public class LocationListActivity extends AppCompatActivity {
             Utils.startNavigation(this, ROUTE_END);
         } else {
             LocationModel loc = locations.get(0);
-            Utils.startNavigation(this, new LatLng(loc.latitude, loc.longitude));
+            Utils.startNavigation(this, new LatLng(loc.place.latitude, loc.place.longitude));
         }
     }
 
@@ -277,11 +277,11 @@ public class LocationListActivity extends AppCompatActivity {
                     NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
                     LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
                     for (LocationModel location : locations) {
-                        LatLng loc = new LatLng(location.latitude, location.longitude);
+                        LatLng loc = new LatLng(location.place.latitude, location.place.longitude);
                         gMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(location.latitude, location.longitude))
+                                .position(new LatLng(location.place.latitude, location.place.longitude))
                                 .title(location.name + " - " + currencyFormat.format(location.price))
-                                .snippet(location.address)
+                                .snippet(location.place.address)
                                 .icon(location.state == LocationModel.State.OPEN
                                         ? openDeliveryMarkerIcon : deliveredDeliveryMarkerIcon));
                         boundsBuilder.include(loc);
@@ -364,7 +364,6 @@ public class LocationListActivity extends AppCompatActivity {
                             routeInfo = requestedRouteInfo;
                             LocationComparator comparator = new LocationComparator(routeInfo.waypointOrder);
                             Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), comparator);
-                            Collections.sort(routeModel.locations, comparator);
                             locationListAdapter.notifyDataSetChanged();
                             updateMapRouteData();
                         }

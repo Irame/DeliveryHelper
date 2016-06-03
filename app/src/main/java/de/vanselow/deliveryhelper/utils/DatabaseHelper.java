@@ -100,6 +100,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 route.id = db.insertOrThrow(ROUTES_TABLE_NAME, null, values);
             }
 
+            for (LocationModel location : route.locations) {
+                addOrUpdateRouteLocation(location, route.id);
+            }
+
             db.setTransactionSuccessful();
         } catch (Exception e) {
             Log.e(TAG, "Error while trying to add or update a route to the database.");
@@ -108,6 +112,36 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         return route.id;
+    }
+
+    public RouteModel getRouteById(long routeId) {
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.query(ROUTES_TABLE_NAME,
+                null,   // all columns (*)
+                ROUTES_ID + " = ?",
+                new String[]{String.valueOf(routeId)},
+                null,   // no grouping
+                null,   // no having (group selection)
+                null,   // no ordering
+                null);  // no limit
+
+        try {
+            if (cursor.moveToFirst()) {
+                return new RouteModel(
+                        cursor.getLong(cursor.getColumnIndex(ROUTES_ID)),
+                        cursor.getString(cursor.getColumnIndex(ROUTES_NAME)),
+                        cursor.getLong(cursor.getColumnIndex(ROUTES_DATE))
+                );
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error while trying to get route from the database. (id = " + routeId + ")");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        return null;
     }
 
     public ArrayList<RouteModel> getAllRoutes() {
@@ -182,10 +216,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             ContentValues values = new ContentValues();
             values.put(LOCATIONS_NAME, dl.name);
-            values.put(LOCATIONS_ADDRESS, dl.address);
-            values.put(LOCATIONS_PLACEID, dl.placeId);
-            values.put(LOCATIONS_LATITUDE, dl.latitude);
-            values.put(LOCATIONS_LONGITUDE, dl.longitude);
+            values.put(LOCATIONS_ADDRESS, dl.place.address);
+            values.put(LOCATIONS_PLACEID, dl.place.placeId);
+            values.put(LOCATIONS_LATITUDE, dl.place.latitude);
+            values.put(LOCATIONS_LONGITUDE, dl.place.longitude);
             values.put(LOCATIONS_PRICE, dl.price);
             values.put(LOCATIONS_NOTES, dl.notes);
             values.put(LOCATIONS_STATE, dl.state.name());
@@ -208,6 +242,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         return dl.id;
+    }
+
+    public LocationModel getRouteLocationById(long locationId) {
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.query(LOCATIONS_TABLE_NAME,
+                new String[]{LOCATIONS_ID, LOCATIONS_NAME, LOCATIONS_ADDRESS, LOCATIONS_PLACEID,
+                        LOCATIONS_LATITUDE, LOCATIONS_LONGITUDE, LOCATIONS_PRICE,
+                        LOCATIONS_NOTES, LOCATIONS_STATE},   // all columns (*)
+                LOCATIONS_ID + " = ?",   // all rows (no WHERE)
+                new String[]{Long.toString(locationId)},   // no args for the WHERE
+                null,   // no grouping
+                null,   // no having (group selection)
+                null,   // no ordering
+                null);  // no limit
+
+        try {
+            if (cursor.moveToFirst()) {
+                    return new LocationModel(
+                            cursor.getLong(cursor.getColumnIndex(LOCATIONS_ID)),
+                            cursor.getString(cursor.getColumnIndex(LOCATIONS_NAME)),
+                            cursor.getString(cursor.getColumnIndex(LOCATIONS_ADDRESS)),
+                            cursor.getString(cursor.getColumnIndex(LOCATIONS_PLACEID)),
+                            cursor.getDouble(cursor.getColumnIndex(LOCATIONS_LATITUDE)),
+                            cursor.getDouble(cursor.getColumnIndex(LOCATIONS_LONGITUDE)),
+                            cursor.getFloat(cursor.getColumnIndex(LOCATIONS_PRICE)),
+                            cursor.getString(cursor.getColumnIndex(LOCATIONS_NOTES)),
+                            LocationModel.State.valueOf(cursor.getString(cursor.getColumnIndex(LOCATIONS_STATE)))
+                    );
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error while trying to get locations from the database.");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        return null;
     }
 
     public ArrayList<LocationModel> getAllRouteLocations(long routeId) {

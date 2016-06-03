@@ -15,9 +15,11 @@ import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Locale;
 
 import de.vanselow.deliveryhelper.utils.DatabaseAsync;
+import de.vanselow.deliveryhelper.utils.DatabaseHelper;
 import de.vanselow.deliveryhelper.utils.Utils;
 
 public class RouteListAdapter extends BaseSwipeAdapter {
@@ -34,30 +36,41 @@ public class RouteListAdapter extends BaseSwipeAdapter {
         this.layoutInflater = LayoutInflater.from(activity);
     }
 
-    public void addItem(RouteModel route) {
-        routes.add(route);
-        notifyDataSetChanged();
-        DatabaseAsync.getInstance(activity).addOrUpdateRoute(route);
-    }
-
-    public void updateItem(RouteModel otherRoute) {
-        for (RouteModel route : routes) {
-            if (route.id == otherRoute.id && route.update(otherRoute)) {
-                notifyDataSetChanged();
-                DatabaseAsync.getInstance(activity).addOrUpdateRoute(route);
-                break;
+    public void updateRouteFromDatabase(final long routeId) {
+        if (routeId < 0) return;
+        DatabaseAsync.getInstance(activity).getRouteById(routeId, new DatabaseAsync.Callback<RouteModel>() {
+            @Override
+            public void onPostExecute(RouteModel routeModel) {
+                boolean found = false;
+                for (Iterator<RouteModel> iterator = routes.iterator(); iterator.hasNext(); ) {
+                    RouteModel route = iterator.next();
+                    if (route.id == routeId) {
+                        found = true;
+                        if (routeModel == null)
+                            iterator.remove();
+                        else
+                            route.update(routeModel);
+                        notifyDataSetChanged();
+                        break;
+                    }
+                }
+                if (!found) {
+                    routes.add(routeModel);
+                    notifyDataSetChanged();
+                }
             }
-        }
+        });
     }
 
-    public void removeItem(int position) {
-        RouteModel route = routes.remove(position);
-        notifyDataSetChanged();
-        DatabaseAsync.getInstance(activity).deleteRouteById(route.id);
-    }
-
-    public ArrayList<RouteModel> getRoutes() {
-        return routes;
+    public void updateAllRoutesFromDatabase() {
+        DatabaseAsync.getInstance(activity).getAllRoutes(new DatabaseAsync.Callback<ArrayList<RouteModel>>() {
+            @Override
+            public void onPostExecute(ArrayList<RouteModel> routeModels) {
+                routes.clear();
+                routes.addAll(routeModels);
+                notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
@@ -142,7 +155,6 @@ public class RouteListAdapter extends BaseSwipeAdapter {
         private TextView totalPrice;
 
         private RouteModel route;
-        private int position;
 
         ItemViewHolder(View v) {
             swipeLayout = (SwipeLayout) v;
@@ -169,7 +181,6 @@ public class RouteListAdapter extends BaseSwipeAdapter {
         public void setup(int position) {
             RouteModel route = (RouteModel) getItem(position);
             this.route = route;
-            this.position = position;
 
             name.setText(route.name);
 
@@ -187,20 +198,20 @@ public class RouteListAdapter extends BaseSwipeAdapter {
         public void onClick(View v) {
             if (v.getId() == surfaceView.getId()) {
                 Intent i = new Intent(activity.getApplicationContext(), LocationListActivity.class);
-                i.putExtra(LocationListActivity.ROUTE_KEY, route);
+                i.putExtra(LocationListActivity.ROUTE_ID_KEY, route.id);
                 activity.startActivityForResult(i, RouteListActivity.EXIT_LOC_LIST_REQUEST_CODE);
             } else if (v.getId() == editButton.getId()) {
                 Intent intent = new Intent(activity.getApplicationContext(), RouteAddActivity.class);
-                intent.putExtra(RouteAddActivity.ROUTE_RESULT_KEY, route);
+                intent.putExtra(RouteAddActivity.ROUTE_ID_KEY, route.id);
                 activity.startActivityForResult(intent, RouteListActivity.EDIT_ROUTE_REQUEST_CODE);
                 swipeLayout.close();
             } else if (v.getId() == deleteButton.getId()) {
                 swipeLayout.close();
-                RouteModel route = routes.get(position);
                 Utils.deleteAlert(activity, route.name, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        removeItem(position);
+                        DatabaseHelper.getInstance(activity).deleteRoute(route);
+                        updateRouteFromDatabase(route.id);
                         dialog.dismiss();
                     }
                 }).show();

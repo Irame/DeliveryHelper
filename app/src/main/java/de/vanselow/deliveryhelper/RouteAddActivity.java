@@ -12,7 +12,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -21,8 +20,11 @@ import android.widget.Toast;
 import java.text.DateFormat;
 import java.util.Calendar;
 
+import de.vanselow.deliveryhelper.utils.DatabaseHelper;
+
 public class RouteAddActivity extends AppCompatActivity {
-    public static final String ROUTE_RESULT_KEY = "route";
+    public static final String ROUTE_ID_KEY = "routeId";
+    public static final String ROUTE_KEY = "route";
 
     private static final String DATE_PICKER_TIME_KEY = "time";
     private static final int DATE_PICKER_REQUEST_CODE = 1;
@@ -38,26 +40,43 @@ public class RouteAddActivity extends AppCompatActivity {
         setContentView(R.layout.activity_route_add);
         noNameToast = Toast.makeText(this, R.string.no_name_toast, Toast.LENGTH_SHORT);
 
-        Intent data = getIntent();
-        if (data != null) route = data.getParcelableExtra(ROUTE_RESULT_KEY);
-        if (route != null && route.hasValidId()) {
-            // Edit Route
-            EditText nameLabel = ((EditText) findViewById(R.id.route_add_name_input));
-            if (nameLabel != null) {
-                nameLabel.setText(route.name);
-                nameLabel.setSelection(route.name.length());
-            }
-
+        if (savedInstanceState != null) {
+            route = savedInstanceState.getParcelable(ROUTE_KEY);
             updateDate(route.date);
-
-            setTitle(R.string.edit_route);
         } else {
-            // Add Route
-            route = new RouteModel();
-            initDate = Calendar.getInstance().getTimeInMillis();
-            updateDate(initDate);
+            Intent data = getIntent();
+            long routeId = -1;
+            if (data != null) routeId = data.getLongExtra(ROUTE_ID_KEY, -1);
+            if (routeId >= 0) {
+                route = DatabaseHelper.getInstance(this).getRouteById(routeId);
+                if (route == null) {
+                    finish();
+                    return;
+                }
+                // Edit Route
+                EditText nameLabel = ((EditText) findViewById(R.id.route_add_name_input));
+                if (nameLabel != null) {
+                    nameLabel.setText(route.name);
+                    nameLabel.setSelection(route.name.length());
+                }
+
+                updateDate(route.date);
+
+                setTitle(R.string.edit_route);
+            } else {
+                // Add Route
+                route = new RouteModel();
+                initDate = Calendar.getInstance().getTimeInMillis();
+                updateDate(initDate);
+            }
         }
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(ROUTE_KEY, route);
     }
 
     private void showDatePicker() {
@@ -110,8 +129,9 @@ public class RouteAddActivity extends AppCompatActivity {
                 }, 2000);
             }
         } else {
+            DatabaseHelper.getInstance(this).addOrUpdateRoute(route);
             Intent result = new Intent();
-            result.putExtra(ROUTE_RESULT_KEY, route);
+            result.putExtra(ROUTE_ID_KEY, route.id);
             setResult(Activity.RESULT_OK, result);
             super.onBackPressed();
         }

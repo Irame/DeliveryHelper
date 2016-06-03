@@ -27,10 +27,7 @@ public class LocationModel implements Parcelable {
 
     public long id;
     public String name;
-    public String address;
-    public String placeId;
-    public double latitude;
-    public double longitude;
+    public Place place;
     public float price;
     public String notes;
     public State state;
@@ -38,10 +35,7 @@ public class LocationModel implements Parcelable {
     public LocationModel(long id, String name, String address, String placeId, double latitude, double longitude, float price, String notes, State state) {
         this.id = id;
         this.name = name;
-        this.address = address;
-        this.placeId = placeId;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.place = new Place(placeId, address, latitude, longitude);
         this.price = price;
         this.notes = notes;
         this.state = state;
@@ -59,10 +53,10 @@ public class LocationModel implements Parcelable {
         if (otherLocation.id != this.id) return false;
         this.id = otherLocation.id;
         this.name = otherLocation.name;
-        this.address = otherLocation.address;
-        this.placeId = otherLocation.placeId;
-        this.latitude = otherLocation.latitude;
-        this.longitude = otherLocation.longitude;
+        this.place.address = otherLocation.place.address;
+        this.place.placeId = otherLocation.place.placeId;
+        this.place.latitude = otherLocation.place.latitude;
+        this.place.longitude = otherLocation.place.longitude;
         this.price = otherLocation.price;
         this.notes = otherLocation.notes;
         this.state = otherLocation.state;
@@ -70,12 +64,6 @@ public class LocationModel implements Parcelable {
     }
 
 
-    public void setPlace(Place place) {
-        this.address =  place.getAddress().toString();
-        this.placeId = place.getId();
-        this.latitude = place.getLatLng().latitude;
-        this.longitude = place.getLatLng().longitude;
-    }
 
     // Json stuff
     public JSONObject toJson() throws JSONException {
@@ -83,10 +71,10 @@ public class LocationModel implements Parcelable {
         try {
             result.put("id", id);
             result.put("name", name);
-            result.put("address", address);
-            result.put("placeId", placeId);
-            result.put("latitude", latitude);
-            result.put("longitude", longitude);
+            result.put("address", place.address);
+            result.put("placeId", place.placeId);
+            result.put("latitude", place.latitude);
+            result.put("longitude", place.longitude);
             result.put("price", price);
             result.put("notes", notes);
             result.put("state", state.name());
@@ -102,10 +90,11 @@ public class LocationModel implements Parcelable {
         try {
             if (json.has("id")) result.id = json.getLong("id");
             result.name = json.getString("name");
-            result.address = json.getString("address");
-            result.placeId = json.getString("placeId");
-            result.latitude = json.getDouble("latitude");
-            result.longitude = json.getDouble("longitude");
+            result.place = new Place(
+                    json.getString("placeId"),
+                    json.getString("address"),
+                    json.getDouble("latitude"),
+                    json.getDouble("longitude"));
             if (json.has("price")) result.price = (float) json.getDouble("price");
             if (json.has("notes")) result.notes = json.getString("notes");
             if (json.has("state")) result.state = State.valueOf(json.getString("state"));
@@ -120,26 +109,18 @@ public class LocationModel implements Parcelable {
     protected LocationModel(Parcel in) {
         id = in.readLong();
         name = in.readString();
-        address = in.readString();
-        placeId = in.readString();
-        latitude = in.readDouble();
-        longitude = in.readDouble();
+        place = in.readParcelable(Place.class.getClassLoader());
         price = in.readFloat();
         notes = in.readString();
-        state = State.valueOf(in.readString());
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(id);
         dest.writeString(name);
-        dest.writeString(address);
-        dest.writeString(placeId);
-        dest.writeDouble(latitude);
-        dest.writeDouble(longitude);
+        dest.writeParcelable(place, flags);
         dest.writeFloat(price);
         dest.writeString(notes);
-        dest.writeString(state.name());
     }
 
     @Override
@@ -159,27 +140,56 @@ public class LocationModel implements Parcelable {
         }
     };
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public static class Place implements Parcelable {
+        public String placeId;
+        public String address;
+        public double latitude;
+        public double longitude;
 
-        LocationModel that = (LocationModel) o;
+        public Place(String placeId, String address, double latitude, double longitude) {
+            this.placeId = placeId;
+            this.address = address;
+            this.latitude = latitude;
+            this.longitude = longitude;
+        }
 
-        if (id != that.id) return false;
-        if (Double.compare(that.latitude, latitude) != 0) return false;
-        if (Double.compare(that.longitude, longitude) != 0) return false;
-        if (Float.compare(that.price, price) != 0) return false;
-        if (!name.equals(that.name)) return false;
-        if (!address.equals(that.address)) return false;
-        if (!placeId.equals(that.placeId)) return false;
-        if (!notes.equals(that.notes)) return false;
-        return state == that.state;
+        public Place(com.google.android.gms.location.places.Place place) {
+            this.address =  place.getAddress().toString();
+            this.placeId = place.getId();
+            this.latitude = place.getLatLng().latitude;
+            this.longitude = place.getLatLng().longitude;
+        }
 
-    }
+        protected Place(Parcel in) {
+            placeId = in.readString();
+            address = in.readString();
+            latitude = in.readDouble();
+            longitude = in.readDouble();
+        }
 
-    @Override
-    public int hashCode() {
-        return (int) (id ^ (id >>> 32));
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(placeId);
+            dest.writeString(address);
+            dest.writeDouble(latitude);
+            dest.writeDouble(longitude);
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        public static final Creator<Place> CREATOR = new Creator<Place>() {
+            @Override
+            public Place createFromParcel(Parcel in) {
+                return new Place(in);
+            }
+
+            @Override
+            public Place[] newArray(int size) {
+                return new Place[size];
+            }
+        };
     }
 }
