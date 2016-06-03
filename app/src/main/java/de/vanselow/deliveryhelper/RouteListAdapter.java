@@ -63,12 +63,14 @@ public class RouteListAdapter extends BaseSwipeAdapter {
     }
 
     public void updateAllRoutesFromDatabase() {
+        activity.findViewById(R.id.route_list_loading_panel).setVisibility(View.VISIBLE);
         DatabaseAsync.getInstance(activity).getAllRoutes(new DatabaseAsync.Callback<ArrayList<RouteModel>>() {
             @Override
             public void onPostExecute(ArrayList<RouteModel> routeModels) {
                 routes.clear();
                 routes.addAll(routeModels);
                 notifyDataSetChanged();
+                activity.findViewById(R.id.route_list_loading_panel).setVisibility(View.GONE);
             }
         });
     }

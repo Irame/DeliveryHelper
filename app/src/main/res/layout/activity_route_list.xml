@@ -5,6 +5,18 @@
     android:layout_height="match_parent"
     tools:context="de.vanselow.deliveryhelper.RouteListActivity">
 
+    <RelativeLayout
+        android:id="@+id/route_list_loading_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center" >
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true" />
+    </RelativeLayout>
+
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
