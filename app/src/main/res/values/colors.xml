@@ -4,6 +4,7 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
     <color name="colorMenuIcon">#FFFFFF</color>
+    <color name="colorListNoteIcon">#555555</color>
     <color name="colorListItemIcon">#000000</color>
     <color name="colorListItemRemoveIconBackground">@android:color/holo_red_light</color>
     <color name="colorListItemEditIconBackground">@android:color/holo_blue_light</color>

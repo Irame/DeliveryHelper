@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.daimajia.swipe.SwipeLayout;
@@ -292,6 +293,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         public ImageButton editButton;
         public ImageButton checkButton;
 
+        public ImageView noteIcon;
         public TextView nameLabel;
         public TextView addressLabel;
         public TextView priceLabel;
@@ -303,6 +305,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
             swipeLayout = (SwipeLayout) itemView;
             surfaceView = swipeLayout.getSurfaceView();
 
+            noteIcon = (ImageView) itemView.findViewById(R.id.location_list_item_note_icon);
             nameLabel = (TextView) itemView.findViewById(R.id.location_list_item_name_label);
             addressLabel = (TextView) itemView.findViewById(R.id.location_list_item_address_label);
             priceLabel = (TextView) itemView.findViewById(R.id.location_list_item_price_label);
@@ -371,9 +374,11 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
             priceLabel.setText(currencyFormat.format(loc.price));
 
             if (loc.notes.isEmpty()) {
+                noteIcon.setVisibility(View.GONE);
                 notesLabel.setText(R.string.no_note_available);
                 notesLabel.setEnabled(false);
             } else {
+                noteIcon.setVisibility(View.VISIBLE);
                 notesLabel.setText(loc.notes);
                 notesLabel.setEnabled(true);
             }
