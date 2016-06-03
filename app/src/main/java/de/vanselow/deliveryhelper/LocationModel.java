@@ -9,6 +9,9 @@ import com.google.android.gms.location.places.Place;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
+
 public class LocationModel implements Parcelable {
     private static final String TAG = LocationModel.class.getName();
 
@@ -63,7 +66,18 @@ public class LocationModel implements Parcelable {
         return true;
     }
 
-
+    public boolean setPrice(String priceString) {
+        price = 0;
+        try {
+            price = NumberFormat.getCurrencyInstance().parse(priceString).floatValue();
+            return true;
+        } catch (ParseException e) {}
+        try {
+            price = NumberFormat.getInstance().parse(priceString).floatValue();
+            return true;
+        } catch (ParseException e) {}
+        return false;
+    }
 
     // Json stuff
     public JSONObject toJson() throws JSONException {

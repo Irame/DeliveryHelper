@@ -122,10 +122,8 @@ public class RemoteAccess {
                 LocationModel locationModel = new LocationModel() {{
                     name = cells[0];
                     place = new Place(geoPlace);
-                    try {
-                        if (cells.length == 3) price = Float.parseFloat(cells[2]);
-                    } catch (NumberFormatException e) {
-                        Log.w(TAG, "Could not parse price for a location. (" + name + "; "  + place.address + ")");
+                    if (cells.length == 3 && !setPrice(cells[2])) {
+                        Log.w(TAG, "Could not parse price for a location. (" + name + "; " + place.address + ")");
                     }
                 }};
                 placeBuffer.release();
