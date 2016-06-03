@@ -9,6 +9,7 @@ import com.google.android.gms.location.places.AutocompletePredictionBuffer;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
+import com.koushikdutta.async.AsyncServer;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
 import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
 import com.koushikdutta.async.http.server.AsyncHttpServerResponse;
@@ -21,6 +22,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
+import de.vanselow.deliveryhelper.utils.Settings;
 
 public class RemoteAccess {
     private static final String TAG = RemoteAccess.class.getName();
@@ -40,7 +42,7 @@ public class RemoteAccess {
     private AsyncHttpServer server;
 
     private RemoteAccess(Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         server = new AsyncHttpServer();
         server.get("/get/routes", new GetRoutesCallback());
         server.post("/addupdate/routes", new AddUpdateRoutesCallback());
@@ -58,7 +60,7 @@ public class RemoteAccess {
         }
 
         googleApiClient = new GoogleApiClient
-                .Builder( context )
+                .Builder( this.context )
                 .addApi( Places.GEO_DATA_API )
                 .build();
     }
@@ -135,10 +137,14 @@ public class RemoteAccess {
         }
     }
 
+    public static void start(Context context) {
+        start(context, Settings.getRemoteAccessPort(context));
+    }
 
     public static void start(Context context, int port) {
         if (instance == null) instance = new RemoteAccess(context);
         instance.server.stop();
+        AsyncServer.getDefault().stop();
         instance.server.listen(port);
         instance.googleApiClient.connect();
     }
@@ -146,6 +152,7 @@ public class RemoteAccess {
     public static void stop() {
         if (instance == null) return;
         instance.server.stop();
+        AsyncServer.getDefault().stop();
         instance.googleApiClient.disconnect();
     }
 
@@ -166,8 +173,8 @@ public class RemoteAccess {
     }
 
     private RoutesReceivedListener routesReceivedListener;
-    public static void setRoutesDataReceivedListener(RoutesReceivedListener listener) {
-        if (instance == null) return;
+    public static void setRoutesDataReceivedListener(Context context, RoutesReceivedListener listener) {
+        if (instance == null) instance = new RemoteAccess(context);
         instance.routesReceivedListener = listener;
     }
     private void onRoutesDataReceived(final ArrayList<RouteModel> routes) {
@@ -189,8 +196,8 @@ public class RemoteAccess {
     }
 
     private LocationsReceivedListener locationsReceivedListener;
-    public static void setLocationsDataReceivedListener(LocationsReceivedListener listener) {
-        if (instance == null) return;
+    public static void setLocationsDataReceivedListener(Context context, LocationsReceivedListener listener) {
+        if (instance == null) instance = new RemoteAccess(context);
         instance.locationsReceivedListener = listener;
     }
     private void onLocationsDataReceived(final ArrayList<LocationModel> locations) {

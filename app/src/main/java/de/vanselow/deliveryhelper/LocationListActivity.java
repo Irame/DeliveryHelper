@@ -45,6 +45,7 @@ import de.vanselow.deliveryhelper.googleapi.RouteInfo;
 import de.vanselow.deliveryhelper.googleapi.RouteInfoRequestClient;
 import de.vanselow.deliveryhelper.utils.DatabaseAsync;
 import de.vanselow.deliveryhelper.utils.GeoLocationCache;
+import de.vanselow.deliveryhelper.utils.Settings;
 import de.vanselow.deliveryhelper.utils.Utils;
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
@@ -118,7 +119,7 @@ public class LocationListActivity extends AppCompatActivity {
         deliveredDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_delivered_delivery));
 
         final Context context = this;
-        RemoteAccess.setLocationsDataReceivedListener(new RemoteAccess.LocationsReceivedListener(this) {
+        RemoteAccess.setLocationsDataReceivedListener(this, new RemoteAccess.LocationsReceivedListener(this) {
             @Override
             public void onLocationsReceived(ArrayList<LocationModel> locations) {
                 for (LocationModel location : locations) {
@@ -142,7 +143,7 @@ public class LocationListActivity extends AppCompatActivity {
         super.onDestroy();
         routeInfoRequestClient.detachToGeoLocationChanges();
         routeInfoRequestClient.cancelRequest();
-        RemoteAccess.setLocationsDataReceivedListener(null);
+        RemoteAccess.setLocationsDataReceivedListener(this, null);
     }
 
     @Override
@@ -205,7 +206,7 @@ public class LocationListActivity extends AppCompatActivity {
     }
 
     private void autosortIfOptionSelected() {
-        if (getSharedPreferences(SettingsActivity.SHARED_PREFERENCES_NAME, MODE_PRIVATE).getBoolean(SettingsActivity.AUTOSORT_OPTION_PREFKEY, false)) {
+        if (Settings.isAutosortForOpenLocationsEnabled(this)) {
             updateRouteInfo();
         }
     }

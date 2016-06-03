@@ -35,4 +35,7 @@
     <string name="failed_to_connect">Verbindung zu Google Services fehlgeschlagen.</string>
     <string name="autosort_open_locations">Offene Orte automatisch sortieren</string>
     <string name="settings">Einstellungen</string>
+    <string name="remote_access">Externer zugriff</string>
+    <string name="remote_access_port">Port für externen zugriff</string>
+    <string name="ok_button">Ok</string>
 </resources>

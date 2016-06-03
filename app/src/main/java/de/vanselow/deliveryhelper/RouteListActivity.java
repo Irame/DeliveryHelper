@@ -14,6 +14,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 
 import de.vanselow.deliveryhelper.utils.DatabaseAsync;
+import de.vanselow.deliveryhelper.utils.Settings;
 import pl.com.salsoft.sqlitestudioremote.SQLiteStudioService;
 
 public class RouteListActivity extends AppCompatActivity {
@@ -28,12 +29,13 @@ public class RouteListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_route_list);
 
-        final Context context = this;
-        RemoteAccess.start(this, 1337);
-        RemoteAccess.setRoutesDataReceivedListener(new RemoteAccess.RoutesReceivedListener(this) {
+        if (Settings.isRemoteAccessEnabled(this))
+            RemoteAccess.start(this);
+
+        RemoteAccess.setRoutesDataReceivedListener(this, new RemoteAccess.RoutesReceivedListener(this) {
             @Override
             public void onRoutesReceived(ArrayList<RouteModel> routes) {
-                DatabaseAsync dbHelper = DatabaseAsync.getInstance(context);
+                DatabaseAsync dbHelper = DatabaseAsync.getInstance(getApplicationContext());
                 for (RouteModel route : routes) {
                     dbHelper.addOrUpdateRoute(route, new DatabaseAsync.Callback<Long>() {
                         @Override
@@ -63,6 +65,7 @@ public class RouteListActivity extends AppCompatActivity {
         // for external sqlite browser
         SQLiteStudioService.instance().stop();
         RemoteAccess.stop();
+        RemoteAccess.setRoutesDataReceivedListener(this, null);
     }
 
     @Override

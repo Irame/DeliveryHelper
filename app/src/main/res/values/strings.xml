@@ -45,4 +45,7 @@
     <string name="failed_retrieve_route">Failed to retrieve route information.</string>
     <string name="autosort_open_locations">Autosort Open Locations</string>
     <string name="settings">Settings</string>
+    <string name="remote_access">Remote Access</string>
+    <string name="ok_button">OK</string>
+    <string name="remote_access_port">Remote Access Port</string>
 </resources>
