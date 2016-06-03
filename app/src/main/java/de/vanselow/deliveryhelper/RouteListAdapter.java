@@ -15,6 +15,8 @@ import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Locale;
 
@@ -50,13 +52,13 @@ public class RouteListAdapter extends BaseSwipeAdapter {
                             iterator.remove();
                         else
                             route.update(routeModel);
-                        notifyDataSetChanged();
+                        onItemCollectionChanged();
                         break;
                     }
                 }
                 if (!found) {
                     routes.add(routeModel);
-                    notifyDataSetChanged();
+                    onItemCollectionChanged();
                 }
             }
         });
@@ -69,7 +71,7 @@ public class RouteListAdapter extends BaseSwipeAdapter {
             public void onPostExecute(ArrayList<RouteModel> routeModels) {
                 routes.clear();
                 routes.addAll(routeModels);
-                notifyDataSetChanged();
+                onItemCollectionChanged();
                 activity.findViewById(R.id.route_list_loading_panel).setVisibility(View.GONE);
             }
         });
@@ -136,6 +138,20 @@ public class RouteListAdapter extends BaseSwipeAdapter {
     @Override
     public void fillValues(int position, View convertView) {
         ((ViewHolder)convertView.getTag()).setup(position);
+    }
+
+    private void onItemCollectionChanged() {
+        sortChronological();
+        notifyDataSetChanged();
+    }
+
+    private void sortChronological() {
+        Collections.sort(routes, new Comparator<RouteModel>() {
+            @Override
+            public int compare(RouteModel lhs, RouteModel rhs) {
+                return -Long.compare(lhs.date, rhs.date);
+            }
+        });
     }
 
     private interface ViewHolder {

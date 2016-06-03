@@ -129,7 +129,6 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
                     allValues.get(location.state.ordinal()).add(location);
                 }
                 onItemCollectionChanged();
-                sortDeliveredAlphabetically();
                 activity.findViewById(R.id.location_list_loading_panel).setVisibility(View.GONE);
             }
         });
@@ -266,20 +265,21 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         itemCollectionChangedListener = listener;
     }
 
-    public void onItemCollectionChanged() {
-        notifyDataSetChanged();
+    private void onItemCollectionChanged() {
         itemCollectionChangedListener.onChanged();
-        sortDeliveredAlphabetically();
+        sortAlphabetically();
+        notifyDataSetChanged();
     }
 
-    public void sortDeliveredAlphabetically() {
-        ArrayList<LocationModel> deliveredLocations = allValues.get(LocationModel.State.DELIVERED.ordinal());
-        Collections.sort(deliveredLocations, new Comparator<LocationModel>() {
-            @Override
-            public int compare(LocationModel lhs, LocationModel rhs) {
-                return lhs.name.compareTo(rhs.name);
-            }
-        });
+    public void sortAlphabetically() {
+        for (ArrayList<LocationModel> sectionValues : allValues) {
+            Collections.sort(sectionValues, new Comparator<LocationModel>() {
+                @Override
+                public int compare(LocationModel lhs, LocationModel rhs) {
+                    return lhs.name.compareTo(rhs.name);
+                }
+            });
+        }
     }
 
     private interface ViewHolder {
