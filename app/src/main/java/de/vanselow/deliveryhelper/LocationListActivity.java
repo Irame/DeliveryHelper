@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -33,11 +32,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.nhaarman.listviewanimations.appearance.StickyListHeadersAdapterDecorator;
-import com.nhaarman.listviewanimations.appearance.simple.AlphaInAnimationAdapter;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 
@@ -142,9 +139,21 @@ public class LocationListActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        routeInfoRequestClient.detachToGeoLocationChanges();
+        routeInfoRequestClient.detachFromGeoLocationChanges();
         routeInfoRequestClient.cancelRequest();
         RemoteAccess.setLocationsDataReceivedListener(this, null);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        GeoLocationCache.getInstance(this).start();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        GeoLocationCache.getInstance(this).stop();
     }
 
     @Override
@@ -232,7 +241,7 @@ public class LocationListActivity extends AppCompatActivity {
                 }
                 googleMap.setMyLocationEnabled(true);
                 googleMap.getUiSettings().setMapToolbarEnabled(false);
-                Location bestLoc = GeoLocationCache.getIncetance(getApplicationContext()).getBestLocation();
+                Location bestLoc = GeoLocationCache.getInstance(getApplicationContext()).getBestLocation();
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(bestLoc.getLatitude(), bestLoc.getLongitude()), 13));
             }
         });

@@ -55,11 +55,11 @@ public abstract class RouteInfoRequestClient<T> {
     }
 
     public void attachToGeoLocationChanges() {
-        GeoLocationCache.getIncetance(context).addGeoLocationListener(geoLocationChangedListener);
+        GeoLocationCache.getInstance(context).addGeoLocationListener(geoLocationChangedListener);
     }
 
-    public void detachToGeoLocationChanges() {
-        GeoLocationCache.getIncetance(context).removeGeoLocationListener(geoLocationChangedListener);
+    public void detachFromGeoLocationChanges() {
+        GeoLocationCache.getInstance(context).removeGeoLocationListener(geoLocationChangedListener);
     }
 
     public void setOrigin(LatLng origin) {
@@ -74,7 +74,7 @@ public abstract class RouteInfoRequestClient<T> {
 
     private LatLng getOrigin() {
         if (origin == null) {
-            final Location location = GeoLocationCache.getIncetance(context).getBestLocation();
+            final Location location = GeoLocationCache.getInstance(context).getBestLocation();
             return new LatLng(location.getLatitude(), location.getLongitude());
         } else
             return origin;
@@ -82,7 +82,7 @@ public abstract class RouteInfoRequestClient<T> {
 
     private LatLng getDestination() {
         if (destination == null) {
-            final Location location = GeoLocationCache.getIncetance(context).getBestLocation();
+            final Location location = GeoLocationCache.getInstance(context).getBestLocation();
             return new LatLng(location.getLatitude(), location.getLongitude());
         } else
             return destination;
