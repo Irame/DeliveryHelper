@@ -27,6 +27,14 @@ public abstract class Utils {
         context.startActivity(mapIntent);
     }
 
+    public static void startNavigation(Context context, String destination) {
+        Uri gmmIntentUri = Uri.parse(String.format(Locale.ENGLISH, "google.navigation:q=%s", destination));
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+        //mapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mapIntent.setPackage("com.google.android.apps.maps");
+        context.startActivity(mapIntent);
+    }
+
     public static BitmapDescriptor getBitmapDescriptor(Drawable vectorDrawable) {
         Rect bounds = new Rect(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
         vectorDrawable.setBounds(bounds);
@@ -52,5 +60,9 @@ public abstract class Utils {
                 })
                 .create();
 
+    }
+
+    public static boolean isValidPort(int port) {
+        return port >= 0 && port <= 0xffff;
     }
 }

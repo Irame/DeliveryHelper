@@ -8,8 +8,10 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
-import android.text.InputType;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -17,6 +19,8 @@ import android.widget.TextView;
 import java.util.Locale;
 
 import de.vanselow.deliveryhelper.utils.Settings;
+
+import static de.vanselow.deliveryhelper.utils.Utils.isValidPort;
 
 public class SettingsActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener {
 
@@ -67,28 +71,22 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
 
     public void remoteAccessPortOnClick(View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("RempteAccess Port");
+        builder.setTitle(R.string.remote_access_port);
 
-        // Set up the input
-        final EditText input = new EditText(this);
-        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        int port = Settings.getRemoteAccessPort(this);
-        String portString = String.valueOf(port);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_settings_port, null);
+
+        final EditText input = (EditText) dialogView.findViewById(R.id.dialog_settings_port_input);
+        input.setHint(String.valueOf(Settings.REMOTEACCESS_PORT_DEFAULT));
+        String portString = String.valueOf(Settings.getRemoteAccessPort(this));
         input.setText(portString);
         input.setSelection(portString.length());
-        builder.setView(input);
 
-        // Set up the buttons
+        builder.setView(dialogView);
+
         builder.setPositiveButton(R.string.ok_button, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                int port;
-                try {
-                    port = Integer.parseInt(input.getText().toString());
-                } catch (NumberFormatException e) {
-                    port = Settings.REMOTEACCESS_PORT_DEFAULT;
-                }
+                int port = parsePort(input.getText().toString());
                 if (Settings.setRemoteAccessPort(getApplicationContext(), port))
                     updateHostPortLabel();
                 dialog.dismiss();
@@ -101,6 +99,33 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
             }
         });
 
-        builder.show();
+        final AlertDialog dialog = builder.create();
+
+        input.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(isValidPort(parsePort(s.toString())));
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        dialog.show();
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+    }
+
+    private int parsePort(String portString) {
+        int port;
+        try {
+            port = Integer.parseInt(portString);
+        } catch (NumberFormatException e) {
+            port = Settings.REMOTEACCESS_PORT_DEFAULT;
+        }
+        return port;
     }
 }

@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 
 import de.vanselow.deliveryhelper.RemoteAccess;
 
+import static de.vanselow.deliveryhelper.utils.Utils.isValidPort;
+
 public abstract class Settings {
     public static final String SHARED_PREFERENCES_NAME = "DeliveryHelperGeneralSettings";
 
@@ -53,7 +55,7 @@ public abstract class Settings {
     }
 
     public static boolean setRemoteAccessPort(Context context, int port) {
-        if (port < 0 || port > 0xffff) return false;
+        if (!isValidPort(port)) return false;
         SharedPreferences.Editor editor = getSharedPreferences(context).edit();
         editor.putInt(REMOTEACCESS_PORT_PREFKEY, port);
         editor.apply();
