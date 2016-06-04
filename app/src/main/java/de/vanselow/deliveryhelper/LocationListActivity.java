@@ -349,9 +349,7 @@ public class LocationListActivity extends AppCompatActivity {
                     public void onRouteInfoResult(@Nullable RouteInfo<LocationModel> requestedRouteInfo) {
                         if (requestedRouteInfo != null) {
                             routeInfo = requestedRouteInfo;
-                            LocationComparator comparator = new LocationComparator(routeInfo.waypointOrder);
-                            Collections.sort(locationListAdapter.getValuesForSection(LocationModel.State.OPEN), comparator);
-                            locationListAdapter.notifyDataSetChanged();
+                            locationListAdapter.customSort(LocationModel.State.OPEN, new LocationComparator(routeInfo.waypointOrder));
                             updateMapRouteData();
                         }
                         stopSortIconAnimation();
