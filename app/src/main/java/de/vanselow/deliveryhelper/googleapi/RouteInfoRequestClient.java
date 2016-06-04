@@ -23,10 +23,10 @@ import de.vanselow.deliveryhelper.utils.GeoLocationCache;
 
 public abstract class RouteInfoRequestClient<T> {
     private static final String TAG = RouteInfoRequestClient.class.getName();
-    private Context context;
+    private GeoLocationCache geoLocationCache;
     private RouteInfo<T> latestRouteInfo;
     private boolean validData;
-    private boolean requesting;
+    private boolean shouldRequest;
 
     private Toast failedToConnectToast;
     private Toast noRouteFoundToast;
@@ -38,8 +38,8 @@ public abstract class RouteInfoRequestClient<T> {
     private RequestClient requestClient;
     private GeoLocationCache.Listener geoLocationChangedListener;
 
-    public RouteInfoRequestClient(Context context) {
-        this.context = context;
+    public RouteInfoRequestClient(Context context, GeoLocationCache geoLocationCache) {
+        this.geoLocationCache = geoLocationCache;
         geoLocationChangedListener = new GeoLocationCache.Listener() {
             @Override
             public void onGeoLocationChanged(Location location) {
@@ -47,19 +47,19 @@ public abstract class RouteInfoRequestClient<T> {
             }
         };
         validData = false;
-        requesting = false;
+        shouldRequest = true;
 
         failedToConnectToast = Toast.makeText(context, R.string.failed_to_connect, Toast.LENGTH_SHORT);
-        noRouteFoundToast = Toast.makeText(context, context.getString(R.string.no_route_found), Toast.LENGTH_SHORT);
+        noRouteFoundToast = Toast.makeText(context, R.string.no_route_found, Toast.LENGTH_SHORT);
         errorGettingRouteToast = Toast.makeText(context, R.string.failed_retrieve_route, Toast.LENGTH_SHORT);
     }
 
-    public void attachToGeoLocationChanges() {
-        GeoLocationCache.getInstance(context).addGeoLocationListener(geoLocationChangedListener);
+    public void startInvalidateOnGeoLocationChanges() {
+        geoLocationCache.addGeoLocationListener(geoLocationChangedListener);
     }
 
-    public void detachFromGeoLocationChanges() {
-        GeoLocationCache.getInstance(context).removeGeoLocationListener(geoLocationChangedListener);
+    public void stopInvalidateOnGeoLocationChanges() {
+        geoLocationCache.removeGeoLocationListener(geoLocationChangedListener);
     }
 
     public void setOrigin(LatLng origin) {
@@ -74,7 +74,8 @@ public abstract class RouteInfoRequestClient<T> {
 
     private LatLng getOrigin() {
         if (origin == null) {
-            final Location location = GeoLocationCache.getInstance(context).getBestLocation();
+            Location location = geoLocationCache.getBestLocation();
+            if (location == null) return null;
             return new LatLng(location.getLatitude(), location.getLongitude());
         } else
             return origin;
@@ -82,19 +83,24 @@ public abstract class RouteInfoRequestClient<T> {
 
     private LatLng getDestination() {
         if (destination == null) {
-            final Location location = GeoLocationCache.getInstance(context).getBestLocation();
+            Location location = geoLocationCache.getBestLocation();
+            if (location == null) return null;
             return new LatLng(location.getLatitude(), location.getLongitude());
         } else
             return destination;
     }
 
     private void requestRouteInfo(final ArrayList<T> locations, final Callback<T> callback) {
-        requesting = true;
         Map<String, String> params = new HashMap<>();
         LatLng o = getOrigin();
-        params.put("origin", o.latitude + "," + o.longitude);
-
         LatLng d = getDestination();
+        if (o == null || d == null) {
+            errorGettingRouteToast.show();
+            callback.onRouteInfoResult(null);
+            return;
+        }
+
+        params.put("origin", o.latitude + "," + o.longitude);
         params.put("destination", d.latitude + "," + d.longitude);
         StringBuilder waypoints = new StringBuilder("optimize:true");
         for (T loc : locations) {
@@ -142,17 +148,18 @@ public abstract class RouteInfoRequestClient<T> {
                         errorGettingRouteToast.show();
                     }
                 }
-                requesting = false;
                 callback.onRouteInfoResult(latestRouteInfo);
+                shouldRequest = true;
             }
         };
+        shouldRequest = false;
         requestClient.execute("maps", "directions", params);
     }
 
     public void getRouteInfo(final ArrayList<T> locations, Callback<T> callback) {
         if (validData) {
             callback.onRouteInfoResult(latestRouteInfo);
-        } else if (!requesting) {
+        } else if (shouldRequest) {
             cancelRequest();
             requestRouteInfo(locations, callback);
         }
@@ -160,7 +167,7 @@ public abstract class RouteInfoRequestClient<T> {
 
     public void invalidateLatestRoute(boolean cancelRequest) {
         if (cancelRequest) cancelRequest();
-        else requesting = false;    // to restart request at next request
+        else shouldRequest = true;    // to restart request at next request
         validData = false;
     }
 
@@ -168,7 +175,7 @@ public abstract class RouteInfoRequestClient<T> {
         if (requestClient != null && requestClient.getStatus() != AsyncTask.Status.FINISHED) {
             requestClient.cancel(true);
         }
-        requesting = false;
+        shouldRequest = true;
     }
 
     protected abstract LatLng toLatLng(T item);

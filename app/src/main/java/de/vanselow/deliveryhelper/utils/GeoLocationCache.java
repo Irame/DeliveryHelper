@@ -1,6 +1,7 @@
 package de.vanselow.deliveryhelper.utils;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -19,9 +20,8 @@ public class GeoLocationCache {
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 60000; // 1 minute
 
-    private static GeoLocationCache instance;
+    private Activity activity;
 
-    private Context context;
     private List<Listener> geoLocationListenerList;
 
     private Location gpsLocation;
@@ -31,25 +31,18 @@ public class GeoLocationCache {
     private LocationListener gpsLocationListener;
     private LocationListener networkLocationListener;
 
-    private GeoLocationCache(Context context) {
-        this.context = context.getApplicationContext();
+    public GeoLocationCache(Activity activity) {
+        this.activity = activity;
         geoLocationListenerList = new LinkedList<>();
 
         gpsLocationListener = new GPSLocationListener();
         networkLocationListener = new NetworkLocationListener();
     }
 
-    public static GeoLocationCache getInstance(Context context) {
-        if (instance == null)
-            instance = new GeoLocationCache(context);
-        return instance;
-    }
-
     public void start() {
         stop();
-        locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-
         if (checkPermission()) {
+            locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 locationManager.requestLocationUpdates(
                         LocationManager.NETWORK_PROVIDER,
@@ -80,8 +73,7 @@ public class GeoLocationCache {
     }
 
     public Location getBestLocation() {
-        if (locationManager == null)
-            throw new IllegalStateException("GeoLocationCache has not been started yet.");
+        if (locationManager == null) start();
         if (gpsLocation == null && netLocation == null) return null;
         if (gpsLocation == null) return new Location(netLocation);
         if (netLocation == null) return new Location(gpsLocation);
@@ -102,8 +94,7 @@ public class GeoLocationCache {
     }
 
     private boolean checkPermission() {
-        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        return ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void onGeoLocationChanged(Location location) {

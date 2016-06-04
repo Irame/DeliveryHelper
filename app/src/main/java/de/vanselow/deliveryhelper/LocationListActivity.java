@@ -57,6 +57,7 @@ public class LocationListActivity extends AppCompatActivity {
     private static final LatLng ROUTE_END = new LatLng(49.982545, 10.097857);
 
     private MapFragment mapFragment;
+    private GeoLocationCache geoLocationCache;
     private RouteInfoRequestClient<LocationModel> routeInfoRequestClient;
     private LocationListAdapter locationListAdapter;
     private long routeId = -1;
@@ -94,14 +95,15 @@ public class LocationListActivity extends AppCompatActivity {
         stickyListHeadersAdapterDecorator.setStickyListHeadersListView(locationListView);
         locationListView.setAdapter(stickyListHeadersAdapterDecorator);
 
-        routeInfoRequestClient = new RouteInfoRequestClient<LocationModel>(getApplicationContext()) {
+        geoLocationCache = new GeoLocationCache(this);
+        routeInfoRequestClient = new RouteInfoRequestClient<LocationModel>(getApplicationContext(), geoLocationCache) {
             @Override
             public LatLng toLatLng(LocationModel item) {
                 return new LatLng(item.place.latitude, item.place.longitude);
             }
         };
         routeInfoRequestClient.setDestination(ROUTE_END);
-        routeInfoRequestClient.attachToGeoLocationChanges();
+        routeInfoRequestClient.startInvalidateOnGeoLocationChanges();
 
         locationListAdapter.setItemCollectionChangedListener(new LocationListAdapter.ItemCollectionChangedListener() {
             @Override
@@ -139,7 +141,7 @@ public class LocationListActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        routeInfoRequestClient.detachFromGeoLocationChanges();
+        routeInfoRequestClient.stopInvalidateOnGeoLocationChanges();
         routeInfoRequestClient.cancelRequest();
         RemoteAccess.setLocationsDataReceivedListener(this, null);
     }
@@ -147,13 +149,13 @@ public class LocationListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        GeoLocationCache.getInstance(this).start();
+        geoLocationCache.start();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        GeoLocationCache.getInstance(this).stop();
+        geoLocationCache.stop();
     }
 
     @Override
@@ -241,8 +243,9 @@ public class LocationListActivity extends AppCompatActivity {
                 }
                 googleMap.setMyLocationEnabled(true);
                 googleMap.getUiSettings().setMapToolbarEnabled(false);
-                Location bestLoc = GeoLocationCache.getInstance(getApplicationContext()).getBestLocation();
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(bestLoc.getLatitude(), bestLoc.getLongitude()), 13));
+                Location bestLoc = geoLocationCache.getBestLocation();
+                if (bestLoc != null)
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(bestLoc.getLatitude(), bestLoc.getLongitude()), 13));
             }
         });
         fragmentTransaction.add(R.id.location_list_map_placeholder, mapFragment);
