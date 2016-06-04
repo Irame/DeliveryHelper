@@ -88,12 +88,9 @@ public class LocationListActivity extends AppCompatActivity {
             return;
         }
         locationListAdapter = new LocationListAdapter(this, routeId);
-        StickyListHeadersAdapterDecorator stickyListHeadersAdapterDecorator = new StickyListHeadersAdapterDecorator(locationListAdapter);
-
         StickyListHeadersListView locationListView = (StickyListHeadersListView) findViewById(R.id.location_list);
         assert locationListView != null;
-        stickyListHeadersAdapterDecorator.setStickyListHeadersListView(locationListView);
-        locationListView.setAdapter(stickyListHeadersAdapterDecorator);
+        locationListView.setAdapter(locationListAdapter);
 
         geoLocationCache = new GeoLocationCache(this);
         routeInfoRequestClient = new RouteInfoRequestClient<LocationModel>(getApplicationContext(), geoLocationCache) {
