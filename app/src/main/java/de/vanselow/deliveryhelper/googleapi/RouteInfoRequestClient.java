@@ -26,6 +26,7 @@ public abstract class RouteInfoRequestClient<T> {
     private Context context;
     private RouteInfo<T> latestRouteInfo;
     private boolean validData;
+    private boolean requesting;
 
     private Toast failedToConnectToast;
     private Toast noRouteFoundToast;
@@ -46,6 +47,7 @@ public abstract class RouteInfoRequestClient<T> {
             }
         };
         validData = false;
+        requesting = false;
 
         failedToConnectToast = Toast.makeText(context, R.string.failed_to_connect, Toast.LENGTH_SHORT);
         noRouteFoundToast = Toast.makeText(context, context.getString(R.string.no_route_found), Toast.LENGTH_SHORT);
@@ -87,6 +89,7 @@ public abstract class RouteInfoRequestClient<T> {
     }
 
     private void requestRouteInfo(final ArrayList<T> locations, final Callback<T> callback) {
+        requesting = true;
         Map<String, String> params = new HashMap<>();
         LatLng o = getOrigin();
         params.put("origin", o.latitude + "," + o.longitude);
@@ -139,6 +142,7 @@ public abstract class RouteInfoRequestClient<T> {
                         errorGettingRouteToast.show();
                     }
                 }
+                requesting = false;
                 callback.onRouteInfoResult(latestRouteInfo);
             }
         };
@@ -148,7 +152,7 @@ public abstract class RouteInfoRequestClient<T> {
     public void getRouteInfo(final ArrayList<T> locations, Callback<T> callback) {
         if (validData) {
             callback.onRouteInfoResult(latestRouteInfo);
-        } else {
+        } else if (!requesting) {
             cancelRequest();
             requestRouteInfo(locations, callback);
         }
@@ -156,6 +160,7 @@ public abstract class RouteInfoRequestClient<T> {
 
     public void invalidateLatestRoute(boolean cancelRequest) {
         if (cancelRequest) cancelRequest();
+        else requesting = false;    // to restart request at next request
         validData = false;
     }
 
@@ -163,6 +168,7 @@ public abstract class RouteInfoRequestClient<T> {
         if (requestClient != null && requestClient.getStatus() != AsyncTask.Status.FINISHED) {
             requestClient.cancel(true);
         }
+        requesting = false;
     }
 
     protected abstract LatLng toLatLng(T item);
