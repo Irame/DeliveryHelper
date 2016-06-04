@@ -15,6 +15,7 @@ import com.daimajia.swipe.SwipeLayout;
 import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.text.Collator;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -280,10 +281,12 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         for (int i = 0; i < allValues.size(); i++) {
             if (externallySorted.get(i)) continue;
             ArrayList<LocationModel> sectionValues = allValues.get(i);
+            final Collator collator = Collator.getInstance();
+            collator.setStrength(Collator.PRIMARY);
             Collections.sort(sectionValues, new Comparator<LocationModel>() {
                 @Override
                 public int compare(LocationModel lhs, LocationModel rhs) {
-                    return lhs.name.compareTo(rhs.name);
+                    return collator.compare(lhs.name, rhs.name);
                 }
             });
         }
