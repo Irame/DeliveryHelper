@@ -7,8 +7,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.daimajia.swipe.SwipeLayout;
@@ -351,7 +354,9 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         @Override
         public void onClick(View v) {
             if (v.getId() == surfaceView.getId()) {
-                notesDisplayId = loc.id == notesDisplayId ? -1 : loc.id;
+                notesDisplayId = notesLabel.getVisibility() == View.VISIBLE ? -1 : loc.id;
+                if (notesDisplayId == loc.id)
+                    notesLabel.startAnimation(new NoteExpandAnimation(notesLabel, 100));
                 notifyDataSetChanged();
             } else if (v.getId() == deleteButton.getId()) {
                 swipeLayout.close();
@@ -416,20 +421,69 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
                 notesLabel.setEnabled(true);
             }
 
-            if (notesDisplayId == loc.id)
-                notesLabel.setVisibility(View.VISIBLE);
-            else
-                notesLabel.setVisibility(View.GONE);
+            if (notesLabel.getVisibility() == View.VISIBLE && notesDisplayId != loc.id) {
+                notesLabel.startAnimation(new NoteExpandAnimation(notesLabel, 100));
+            }
 
             if (loc.state == LocationModel.State.DELIVERED) {
                 checkButton.setVisibility(View.GONE);
                 uncheckButton.setVisibility(View.VISIBLE);
-            }
-            else {
+            } else {
                 checkButton.setVisibility(View.VISIBLE);
                 uncheckButton.setVisibility(View.GONE);
             }
+        }
+    }
 
+    private class NoteExpandAnimation extends Animation {
+        private View animatedView;
+        private LinearLayout.LayoutParams viewLayoutParams;
+        private int bottomMarginInitial;
+        private int marginStart, marginEnd;
+        private boolean initialVisible = false;
+
+        NoteExpandAnimation(View view, int duration) {
+            setDuration(duration);
+            animatedView = view;
+
+            initialVisible = (view.getVisibility() == View.VISIBLE);
+
+            viewLayoutParams = (LinearLayout.LayoutParams) view.getLayoutParams();
+            bottomMarginInitial = 0;
+
+            view.measure(View.MeasureSpec.makeMeasureSpec(((LinearLayout)view.getParent()).getWidth(), View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0xffffff, View.MeasureSpec.AT_MOST));
+            int heightToAnimate = view.getMeasuredHeight() + viewLayoutParams.topMargin;
+
+            marginStart = initialVisible ? bottomMarginInitial : -heightToAnimate;
+            marginEnd = initialVisible ? -heightToAnimate : bottomMarginInitial;
+
+            setAnimationListener(new AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                    animatedView.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    viewLayoutParams.bottomMargin = bottomMarginInitial;
+                    if (initialVisible) {
+                        animatedView.setVisibility(View.GONE);
+                    }
+                    animatedView.requestLayout();
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {}
+            });
+        }
+
+        @Override
+        protected void applyTransformation(float interpolatedTime, Transformation t) {
+            if (interpolatedTime < 1.0f) {
+                viewLayoutParams.bottomMargin = marginStart + (int) ((marginEnd - marginStart) * interpolatedTime);
+
+                animatedView.requestLayout();
+            }
         }
     }
 
