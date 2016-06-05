@@ -108,7 +108,6 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(isValidPort(parsePort(s.toString())));
-
             }
 
             @Override
@@ -121,10 +120,14 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
 
     private int parsePort(String portString) {
         int port;
-        try {
-            port = Integer.parseInt(portString);
-        } catch (NumberFormatException e) {
+        if (portString.isEmpty())
             port = Settings.REMOTEACCESS_PORT_DEFAULT;
+        else {
+            try {
+                port = Integer.parseInt(portString);
+            } catch (NumberFormatException e) {
+                port = -1;
+            }
         }
         return port;
     }
