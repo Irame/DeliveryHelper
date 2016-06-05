@@ -7,7 +7,8 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:weightSum="1">
+        android:weightSum="1"
+        android:id="@+id/location_list_item_right_bottom">
 
         <ImageButton
             android:layout_width="60dp"
@@ -35,6 +36,22 @@
             android:id="@+id/location_list_item_check_button"
             android:tint="@color/colorListItemIcon"
             android:background="@color/colorListItemCheckIconBackground" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:weightSum="1"
+        android:id="@+id/location_list_item_left_bottom">
+
+        <ImageButton
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_list_item_uncheck"
+            android:layout_gravity="center"
+            android:id="@+id/location_list_item_uncheck_button"
+            android:tint="@color/colorListItemIcon"
+            android:background="@color/colorListItemUncheckIconBackground" />
     </LinearLayout>
 
     <LinearLayout

@@ -9,6 +9,7 @@
     <color name="colorListItemRemoveIconBackground">@android:color/holo_red_light</color>
     <color name="colorListItemEditIconBackground">@android:color/holo_blue_light</color>
     <color name="colorListItemCheckIconBackground">@android:color/holo_green_light</color>
+    <color name="colorListItemUncheckIconBackground">#ffff9233</color>
     <color name="colorGoogleMapsPolyline">#aa00B3FD</color>
     <color name="colorNavigationButtonOutside">#ff4285F4</color>
     <color name="colorNavigationButtonInside">#ffffffff</color>

@@ -310,6 +310,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         public ImageButton deleteButton;
         public ImageButton editButton;
         public ImageButton checkButton;
+        public ImageButton uncheckButton;
 
         public ImageView noteIcon;
         public TextView nameLabel;
@@ -323,6 +324,9 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
             swipeLayout = (SwipeLayout) itemView;
             surfaceView = swipeLayout.getSurfaceView();
 
+            swipeLayout.addDrag(SwipeLayout.DragEdge.Right, swipeLayout.findViewById(R.id.location_list_item_right_bottom));
+            swipeLayout.addDrag(SwipeLayout.DragEdge.Left, swipeLayout.findViewById(R.id.location_list_item_left_bottom));
+
             noteIcon = (ImageView) itemView.findViewById(R.id.location_list_item_note_icon);
             nameLabel = (TextView) itemView.findViewById(R.id.location_list_item_name_label);
             addressLabel = (TextView) itemView.findViewById(R.id.location_list_item_address_label);
@@ -332,12 +336,14 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
             deleteButton = (ImageButton) itemView.findViewById(R.id.location_list_item_delete_button);
             editButton = (ImageButton) itemView.findViewById(R.id.location_list_item_edit_button);
             checkButton = (ImageButton) itemView.findViewById(R.id.location_list_item_check_button);
+            uncheckButton = (ImageButton) itemView.findViewById(R.id.location_list_item_uncheck_button);
 
             surfaceView.setOnClickListener(this);
             surfaceView.setOnLongClickListener(this);
             deleteButton.setOnClickListener(this);
             editButton.setOnClickListener(this);
             checkButton.setOnClickListener(this);
+            uncheckButton.setOnClickListener(this);
 
             swipeLayout.setClickToClose(true);
         }
@@ -366,6 +372,15 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
             } else if (v.getId() == checkButton.getId()) {
                 swipeLayout.close(false);
                 loc.state = LocationModel.State.DELIVERED;
+                DatabaseAsync.getInstance(activity).updateRouteLocation(loc, new DatabaseAsync.Callback<Long>() {
+                    @Override
+                    public void onPostExecute(Long locationId) {
+                        updateLocationFromDatabase(locationId);
+                    }
+                });
+            } else if (v.getId() == uncheckButton.getId()) {
+                swipeLayout.close(false);
+                loc.state = LocationModel.State.OPEN;
                 DatabaseAsync.getInstance(activity).updateRouteLocation(loc, new DatabaseAsync.Callback<Long>() {
                     @Override
                     public void onPostExecute(Long locationId) {
@@ -406,10 +421,15 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
             else
                 notesLabel.setVisibility(View.GONE);
 
-            if (loc.state == LocationModel.State.DELIVERED)
+            if (loc.state == LocationModel.State.DELIVERED) {
                 checkButton.setVisibility(View.GONE);
-            else
+                uncheckButton.setVisibility(View.VISIBLE);
+            }
+            else {
                 checkButton.setVisibility(View.VISIBLE);
+                uncheckButton.setVisibility(View.GONE);
+            }
+
         }
     }
 
