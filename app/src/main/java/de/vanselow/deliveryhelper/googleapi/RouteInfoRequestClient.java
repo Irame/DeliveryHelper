@@ -16,6 +16,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import de.vanselow.deliveryhelper.R;
@@ -90,7 +91,8 @@ public abstract class RouteInfoRequestClient<T> {
             return destination;
     }
 
-    private void requestRouteInfo(final ArrayList<T> locations, final Callback<T> callback) {
+    private void requestRouteInfo(List<T> locations, final Callback<T> callback) {
+        final List<T> locationCopy = new ArrayList<>(locations);
         Map<String, String> params = new HashMap<>();
         LatLng o = getOrigin();
         LatLng d = getDestination();
@@ -103,7 +105,7 @@ public abstract class RouteInfoRequestClient<T> {
         params.put("origin", o.latitude + "," + o.longitude);
         params.put("destination", d.latitude + "," + d.longitude);
         StringBuilder waypoints = new StringBuilder("optimize:true");
-        for (T loc : locations) {
+        for (T loc : locationCopy) {
             LatLng latLng = toLatLng(loc);
             waypoints.append("|").append(latLng.latitude).append(",").append(latLng.longitude);
         }
@@ -121,9 +123,9 @@ public abstract class RouteInfoRequestClient<T> {
                         if (status.equals("OK")) {
                             latestRouteInfo = new RouteInfo<>();
                             JSONArray order = jsonObject.getJSONArray("routes").getJSONObject(0).getJSONArray("waypoint_order");
-                            if (locations.size() == order.length()) {
-                                for (int i = 0; i < locations.size(); i++) {
-                                    latestRouteInfo.waypointOrder.put(locations.get(order.getInt(i)), i);
+                            if (locationCopy.size() == order.length()) {
+                                for (int i = 0; i < locationCopy.size(); i++) {
+                                    latestRouteInfo.waypointOrder.put(locationCopy.get(order.getInt(i)), i);
                                 }
                             }
 
@@ -156,7 +158,7 @@ public abstract class RouteInfoRequestClient<T> {
         requestClient.execute("maps", "directions", params);
     }
 
-    public void getRouteInfo(final ArrayList<T> locations, Callback<T> callback) {
+    public void getRouteInfo(final List<T> locations, Callback<T> callback) {
         if (validData) {
             callback.onRouteInfoResult(latestRouteInfo);
         } else if (shouldRequest) {
