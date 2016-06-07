@@ -2,6 +2,8 @@ package de.vanselow.deliveryhelper;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,23 +26,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 
 import de.vanselow.deliveryhelper.utils.DatabaseAsync;
 import de.vanselow.deliveryhelper.utils.DatabaseHelper;
+import de.vanselow.deliveryhelper.utils.ParcelableArrayList;
 import de.vanselow.deliveryhelper.utils.Utils;
 import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 
-public class LocationListAdapter extends BaseSwipeAdapter implements StickyListHeadersAdapter {
+public class LocationListAdapter extends BaseSwipeAdapter implements StickyListHeadersAdapter, Parcelable {
     private static final String TAG = LocationListAdapter.class.getName();
 
     private static final int TYPE_ITEM = 0;
     private static final int TYPE_SEPARATOR = 1;
     private static final int TYPE_EPTY_NOTE = 2;
 
-    private ArrayList<ArrayList<LocationModel>> allValues;
-    private ArrayList<String> sections;
-    private ArrayList<String> emptySectionTexts;
-    private ArrayList<Boolean> externallySorted;
+    private ParcelableArrayList<LocationModel>[] allValues;
+    private String[] sections;
+    private String[] emptySectionTexts;
+    private boolean[] externallySorted;
     private long notesDisplayId;
 
     private LayoutInflater layoutInflater;
@@ -49,26 +53,28 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
 
     ItemCollectionChangedListener itemCollectionChangedListener;
 
+    @SuppressWarnings("unchecked")
     public LocationListAdapter(FragmentActivity activity, long routeId) {
         this.activity = activity;
         this.routeId = routeId;
         layoutInflater = LayoutInflater.from(activity);
-        allValues = new ArrayList<>();
-        sections = new ArrayList<>();
-        emptySectionTexts = new ArrayList<>();
-        externallySorted = new ArrayList<>();
+        int stateCount = LocationModel.State.values().length;
+        allValues = new ParcelableArrayList[stateCount];
+        sections = new String[stateCount];
+        emptySectionTexts = new String[stateCount];
+        externallySorted = new boolean[stateCount];
         for (LocationModel.State state : LocationModel.State.values()) {
-            allValues.add(new ArrayList<LocationModel>());
-            sections.add(activity.getString(state.sectionStringId));
-            emptySectionTexts.add(activity.getString(state.emptyListStringId));
-            externallySorted.add(false);
+            allValues[state.ordinal()] = new ParcelableArrayList<>();
+            sections[state.ordinal()] = activity.getString(state.sectionStringId);
+            emptySectionTexts[state.ordinal()] = activity.getString(state.emptyListStringId);
+            externallySorted[state.ordinal()] = false;
         }
     }
 
     @Override
     public int getCount() {
         int count = 0;
-        for (ArrayList<LocationModel> sectionValues : allValues) {
+        for (List<LocationModel> sectionValues : allValues) {
             count += Math.max(sectionValues.size(), 1);
         }
         return count;
@@ -79,7 +85,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         int section = -1;
         while (position >= 0) {
             section++;
-            int sectionSize = allValues.get(section).size();
+            int sectionSize = allValues[section].size();
             if (position == 0 && sectionSize == 0) {
                 type = TYPE_EPTY_NOTE;
                 break;
@@ -99,8 +105,8 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
             @Override
             public void onPostExecute(LocationModel locationModel) {
                 boolean found = false;
-                for (int section = 0; section < allValues.size(); section++) {
-                    ArrayList<LocationModel> sectionValues = allValues.get(section);
+                for (int section = 0; section < allValues.length; section++) {
+                    List<LocationModel> sectionValues = allValues[section];
                     for (Iterator<LocationModel> iterator = sectionValues.iterator(); iterator.hasNext(); ) {
                         LocationModel location = iterator.next();
                         if (location.id == locationId) {
@@ -117,8 +123,8 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
                     }
                 }
                 if (!found) {
-                    allValues.get(locationModel.state.ordinal()).add(locationModel);
-                    externallySorted.set(locationModel.state.ordinal(), false);
+                    allValues[locationModel.state.ordinal()].add(locationModel);
+                    externallySorted[locationModel.state.ordinal()] = false;
                     onItemCollectionChanged();
                 }
             }
@@ -130,12 +136,12 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         DatabaseAsync.getInstance(activity).getAllRouteLocations(routeId, new DatabaseAsync.Callback<ArrayList<LocationModel>>() {
             @Override
             public void onPostExecute(ArrayList<LocationModel> locationModels) {
-                for (int i = 0; i < allValues.size(); i++) {
-                    allValues.get(i).clear();
-                    externallySorted.set(i, false);
+                for (int i = 0; i < allValues.length; i++) {
+                    allValues[i].clear();
+                    externallySorted[i] = false;
                 }
                 for (LocationModel location : locationModels) {
-                    allValues.get(location.state.ordinal()).add(location);
+                    allValues[location.state.ordinal()].add(location);
                 }
                 onItemCollectionChanged();
                 activity.findViewById(R.id.location_list_loading_panel).setVisibility(View.GONE);
@@ -148,11 +154,11 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         ItemInfo itemInfo = getItemInfo(position);
         switch (itemInfo.type) {
             case TYPE_SEPARATOR:
-                return sections.get(itemInfo.section);
+                return sections[itemInfo.section];
             case TYPE_ITEM:
-                return allValues.get(itemInfo.section).get(itemInfo.relativeItemPos);
+                return allValues[itemInfo.section].get(itemInfo.relativeItemPos);
             case TYPE_EPTY_NOTE:
-                return emptySectionTexts.get(itemInfo.section);
+                return emptySectionTexts[itemInfo.section];
             default:
                 return null;
         }
@@ -210,13 +216,13 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         ((ViewHolder) convertView.getTag()).setup(position);
     }
 
-    public ArrayList<LocationModel> getValuesForSection(LocationModel.State state) {
-        return allValues.get(state.ordinal());
+    public List<LocationModel> getValuesForSection(LocationModel.State state) {
+        return allValues[state.ordinal()];
     }
 
-    public ArrayList<LocationModel> getAllValues() {
+    public List<LocationModel> getAllValues() {
         ArrayList<LocationModel> result = new ArrayList<>();
-        for (ArrayList<LocationModel> sectionValues : allValues) {
+        for (List<LocationModel> sectionValues : allValues) {
             result.addAll(sectionValues);
         }
         return result;
@@ -283,9 +289,9 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
     public void sortAlphabetically() {
         final Collator collator = Collator.getInstance();
         collator.setStrength(Collator.PRIMARY);
-        for (int i = 0; i < allValues.size(); i++) {
-            if (externallySorted.get(i)) continue;
-            ArrayList<LocationModel> sectionValues = allValues.get(i);
+        for (int i = 0; i < allValues.length; i++) {
+            if (externallySorted[i]) continue;
+            List<LocationModel> sectionValues = allValues[i];
             Collections.sort(sectionValues, new Comparator<LocationModel>() {
                 @Override
                 public int compare(LocationModel lhs, LocationModel rhs) {
@@ -296,10 +302,47 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
     }
 
     public void customSort(LocationModel.State state, Comparator<LocationModel> comparator) {
-        externallySorted.set(state.ordinal(), true);
-        Collections.sort(allValues.get(state.ordinal()), comparator);
+        externallySorted[state.ordinal()] = true;
+        Collections.sort(allValues[state.ordinal()], comparator);
         notifyDataSetChanged();
     }
+
+    public void setActivity(FragmentActivity activity) {
+        this.activity = activity;
+    }
+
+    protected LocationListAdapter(Parcel in) {
+        this(null, 0);
+        in.readTypedArray(allValues, ParcelableArrayList.CREATOR);
+        in.readBooleanArray(externallySorted);
+        notesDisplayId = in.readLong();
+        routeId = in.readLong();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelableArray(allValues, flags);
+        dest.writeBooleanArray(externallySorted);
+        dest.writeLong(notesDisplayId);
+        dest.writeLong(routeId);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<LocationListAdapter> CREATOR = new Creator<LocationListAdapter>() {
+        @Override
+        public LocationListAdapter createFromParcel(Parcel in) {
+            return new LocationListAdapter(in);
+        }
+
+        @Override
+        public LocationListAdapter[] newArray(int size) {
+            return new LocationListAdapter[size];
+        }
+    };
 
     private interface ViewHolder {
         void setup(int position);
@@ -403,7 +446,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
 
         public void setup(int position) {
             ItemInfo itemInfo = getItemInfo(position);
-            loc = allValues.get(itemInfo.section).get(itemInfo.relativeItemPos);
+            loc = allValues[itemInfo.section].get(itemInfo.relativeItemPos);
 
             nameLabel.setText(loc.name);
             addressLabel.setText(loc.place.address);
@@ -496,7 +539,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
 
         public void setup(int position) {
             ItemInfo itemInfo = getItemInfo(position);
-            sectionHeaderLabel.setText(sections.get(itemInfo.section));
+            sectionHeaderLabel.setText(sections[itemInfo.section]);
         }
     }
 
@@ -510,7 +553,7 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         @Override
         public void setup(int position) {
             ItemInfo itemInfo = getItemInfo(position);
-            emptynoteLabel.setText(emptySectionTexts.get(itemInfo.section));
+            emptynoteLabel.setText(emptySectionTexts[itemInfo.section]);
         }
     }
 }

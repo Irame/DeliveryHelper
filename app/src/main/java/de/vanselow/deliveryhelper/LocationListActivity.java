@@ -36,6 +36,7 @@ import com.nhaarman.listviewanimations.appearance.StickyListHeadersAdapterDecora
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 import de.vanselow.deliveryhelper.googleapi.RouteInfo;
@@ -53,6 +54,7 @@ public class LocationListActivity extends AppCompatActivity {
 
     public static final String ROUTE_ID_KEY = "routeId";
     public static final String IS_SORTING_KEY = "isSoring";
+    public static final String LOCATION_LIST_ADAPTER_KEY = "locationListAdapter";
 
     private static final LatLng ROUTE_END = new LatLng(49.982545, 10.097857);
 
@@ -76,21 +78,37 @@ public class LocationListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_list);
 
+        boolean needToUpdateListViewAdapter;
         if (savedInstanceState != null) {
             routeId = savedInstanceState.getLong(ROUTE_ID_KEY, -1);
             isSorting = savedInstanceState.getBoolean(IS_SORTING_KEY);
+            locationListAdapter = savedInstanceState.getParcelable(LOCATION_LIST_ADAPTER_KEY);
+            needToUpdateListViewAdapter = false;
+            findViewById(R.id.location_list_loading_panel).setVisibility(View.GONE);
+        } else {
+            if (getIntent() == null || (routeId = getIntent().getLongExtra(ROUTE_ID_KEY, -1)) < 0) {
+                finish();
+                return;
+            } else {
+                locationListAdapter = new LocationListAdapter(this, routeId);
+                needToUpdateListViewAdapter = true;
+            }
         }
-        if (routeId < 0) {
-            routeId = getIntent().getLongExtra(ROUTE_ID_KEY, -1);
-        }
-        if (routeId < 0) {
-            finish();
-            return;
-        }
-        locationListAdapter = new LocationListAdapter(this, routeId);
+
+        locationListAdapter.setItemCollectionChangedListener(new LocationListAdapter.ItemCollectionChangedListener() {
+            @Override
+            public void onChanged() {
+                routeInfoRequestClient.invalidateLatestRoute(true);
+                autosortIfOptionSelected();
+            }
+        });
+
         StickyListHeadersListView locationListView = (StickyListHeadersListView) findViewById(R.id.location_list);
         assert locationListView != null;
         locationListView.setAdapter(locationListAdapter);
+
+        if (needToUpdateListViewAdapter)
+            locationListAdapter.updateAllLocationsFromDatabase();
 
         geoLocationCache = new GeoLocationCache(this);
         routeInfoRequestClient = new RouteInfoRequestClient<LocationModel>(getApplicationContext(), geoLocationCache) {
@@ -101,15 +119,6 @@ public class LocationListActivity extends AppCompatActivity {
         };
         routeInfoRequestClient.setDestination(ROUTE_END);
         routeInfoRequestClient.startInvalidateOnGeoLocationChanges();
-
-        locationListAdapter.setItemCollectionChangedListener(new LocationListAdapter.ItemCollectionChangedListener() {
-            @Override
-            public void onChanged() {
-                routeInfoRequestClient.invalidateLatestRoute(true);
-                autosortIfOptionSelected();
-            }
-        });
-        locationListAdapter.updateAllLocationsFromDatabase();
 
         MapsInitializer.initialize(getApplicationContext());
         openDeliveryMarkerIcon = Utils.getBitmapDescriptor(getDrawable(R.drawable.ic_open_delivery));
@@ -174,6 +183,7 @@ public class LocationListActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putLong(ROUTE_ID_KEY, routeId);
+        outState.putParcelable(LOCATION_LIST_ADAPTER_KEY, locationListAdapter);
         outState.putBoolean(IS_SORTING_KEY, isSorting);
     }
 
@@ -250,7 +260,7 @@ public class LocationListActivity extends AppCompatActivity {
     }
 
     public void mapNavigationButtonOnClick(View view) {
-        final ArrayList<LocationModel> locations = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
+        final List<LocationModel> locations = locationListAdapter.getValuesForSection(LocationModel.State.OPEN);
         if (locations.isEmpty()) {
             Utils.startNavigation(this, ROUTE_END);
         } else {
@@ -268,7 +278,7 @@ public class LocationListActivity extends AppCompatActivity {
                 googleMap = gMap;
                 gMap.clear();
 
-                ArrayList<LocationModel> locations = locationListAdapter.getAllValues();
+                List<LocationModel> locations = locationListAdapter.getAllValues();
                 if (!locations.isEmpty()) {
                     NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
                     LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
