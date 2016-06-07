@@ -9,11 +9,17 @@
         android:onClick="mapLocationsOnClick"
         app:showAsAction="always"/>
     <item
-        android:id="@+id/action_locations_sort"
-        android:icon="@drawable/ic_menu_sort"
-        android:title="@string/sort_open_locations"
-        android:onClick="sortLocationsOnClick"
+        android:id="@+id/action_locations_sort_route"
+        android:icon="@drawable/ic_menu_sort_route"
+        android:title="@string/sort_open_locations_by_route"
+        android:onClick="sortLocationsByRouteOnClick"
         app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_locations_sort_alphabetical"
+        android:icon="@drawable/ic_menu_sort_alphabetical"
+        android:title="@string/sort_open_locations_alphabetical"
+        android:onClick="sortLocationsAlphabeticalOnClick"
+        app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/action_location_add"
         android:icon="@drawable/ic_menu_add"

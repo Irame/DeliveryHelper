@@ -10,8 +10,8 @@ import static de.vanselow.deliveryhelper.utils.Utils.isValidPort;
 public abstract class Settings {
     public static final String SHARED_PREFERENCES_NAME = "DeliveryHelperGeneralSettings";
 
-    public static final String AUTOSORT_OPTION_PREFKEY = "autosortOption";
-    public static final boolean AUTOSORT_OPTION_DEFAULT = false;
+    public static final String AUTOSORT_BY_ROUTE_OPTION_PREFKEY = "autosortByRouteOption";
+    public static final boolean AUTOSORT_BY_ROUTE_OPTION_DEFAULT = false;
 
     public static final String REMOTEACCESS_OPTION_PREFKEY = "remoteaccessOption";
     public static final boolean REMOTEACCESS_OPTION_DEFAULT = false;
@@ -24,13 +24,13 @@ public abstract class Settings {
     }
 
 
-    public static boolean isAutosortForOpenLocationsEnabled(Context context) {
-        return getSharedPreferences(context).getBoolean(AUTOSORT_OPTION_PREFKEY, AUTOSORT_OPTION_DEFAULT);
+    public static boolean isAutosortByRouteForOpenLocationsEnabled(Context context) {
+        return getSharedPreferences(context).getBoolean(AUTOSORT_BY_ROUTE_OPTION_PREFKEY, AUTOSORT_BY_ROUTE_OPTION_DEFAULT);
     }
 
-    public static void setAutosortForOpenLocations(Context context, boolean enabled) {
+    public static void setAutosortByRouteForOpenLocations(Context context, boolean enabled) {
         SharedPreferences.Editor editor = getSharedPreferences(context).edit();
-        editor.putBoolean(AUTOSORT_OPTION_PREFKEY, enabled);
+        editor.putBoolean(AUTOSORT_BY_ROUTE_OPTION_PREFKEY, enabled);
         editor.apply();
     }
 

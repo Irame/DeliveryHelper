@@ -307,6 +307,12 @@ public class LocationListAdapter extends BaseSwipeAdapter implements StickyListH
         notifyDataSetChanged();
     }
 
+    public void resetCustomSort(LocationModel.State state) {
+        externallySorted[state.ordinal()] = false;
+        sortAlphabetically();
+        notifyDataSetChanged();
+    }
+
     public void setActivity(FragmentActivity activity) {
         this.activity = activity;
     }

@@ -43,9 +43,11 @@
     <string name="cancel_button">Cancel</string>
     <string name="failed_to_connect">Failed to connect to Google services.</string>
     <string name="failed_retrieve_route">Failed to retrieve route information.</string>
-    <string name="autosort_open_locations">Autosort Open Locations</string>
+    <string name="autosort_open_locations_by_route">Autosort Open Locations by Route</string>
     <string name="settings">Settings</string>
     <string name="remote_access">Remote Access</string>
     <string name="ok_button">OK</string>
     <string name="remote_access_port">Remote Access Port</string>
+    <string name="sort_open_locations_by_route">Sort Open Locations by Route</string>
+    <string name="sort_open_locations_alphabetical">Sort Open Locations Alphabetical</string>
 </resources>

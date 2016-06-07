@@ -31,7 +31,6 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
-import com.nhaarman.listviewanimations.appearance.StickyListHeadersAdapterDecorator;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -99,7 +98,7 @@ public class LocationListActivity extends AppCompatActivity {
             @Override
             public void onChanged() {
                 routeInfoRequestClient.invalidateLatestRoute(true);
-                autosortIfOptionSelected();
+                autosortOpenLocationsByRouteIfOptionSelected();
             }
         });
 
@@ -206,7 +205,7 @@ public class LocationListActivity extends AppCompatActivity {
             }
         }
         if (requestCode == EXIT_SETTINGS_REQUEST_CODE) {
-            autosortIfOptionSelected();
+            autosortOpenLocationsByRouteIfOptionSelected();
         }
     }
 
@@ -217,9 +216,14 @@ public class LocationListActivity extends AppCompatActivity {
         startActivityForResult(intent, ADD_LOCATION_REQUEST_CODE);
     }
 
-    public void sortLocationsOnClick(final MenuItem item) {
+    public void sortLocationsByRouteOnClick(final MenuItem item) {
         hideMap();
         updateRouteInfo();
+    }
+
+    public void sortLocationsAlphabeticalOnClick(MenuItem item) {
+        hideMap();
+        locationListAdapter.resetCustomSort(LocationModel.State.OPEN);
     }
 
     public void openSettingsOnClick(MenuItem item) {
@@ -227,8 +231,8 @@ public class LocationListActivity extends AppCompatActivity {
         startActivityForResult(new Intent(getApplicationContext(), SettingsActivity.class), EXIT_SETTINGS_REQUEST_CODE);
     }
 
-    private void autosortIfOptionSelected() {
-        if (Settings.isAutosortForOpenLocationsEnabled(this)) {
+    private void autosortOpenLocationsByRouteIfOptionSelected() {
+        if (Settings.isAutosortByRouteForOpenLocationsEnabled(this)) {
             updateRouteInfo();
         }
     }
@@ -338,7 +342,7 @@ public class LocationListActivity extends AppCompatActivity {
         stopSortIconAnimation();
         isSorting = true;
         if (optionsMenu == null) return;
-        MenuItem item = optionsMenu.findItem(R.id.action_locations_sort);
+        MenuItem item = optionsMenu.findItem(R.id.action_locations_sort_route);
         if (item != null) {
             LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
             ImageView iv = (ImageView) inflater.inflate(R.layout.iv_sort_locations, null);
@@ -352,7 +356,7 @@ public class LocationListActivity extends AppCompatActivity {
     private void stopSortIconAnimation() {
         isSorting = false;
         if (optionsMenu == null) return;
-        MenuItem item = optionsMenu.findItem(R.id.action_locations_sort);
+        MenuItem item = optionsMenu.findItem(R.id.action_locations_sort_route);
         if (item != null && item.getActionView() != null) {
             item.getActionView().clearAnimation();
             item.setActionView(null);

@@ -33,9 +33,11 @@
     <string name="show_map">Karte anzeigen</string>
     <string name="failed_retrieve_route">Beziehen der Routeninformationen fehlgeschlagen.</string>
     <string name="failed_to_connect">Verbindung zu Google Services fehlgeschlagen.</string>
-    <string name="autosort_open_locations">Offene Orte automatisch sortieren</string>
+    <string name="autosort_open_locations_by_route">Offene Orte automatisch anhand Route sortieren</string>
     <string name="settings">Einstellungen</string>
     <string name="remote_access">Externer zugriff</string>
     <string name="remote_access_port">Port für externen zugriff</string>
     <string name="ok_button">Ok</string>
+    <string name="sort_open_locations_alphabetical">Offene Orte alphabetisch sortieren</string>
+    <string name="sort_open_locations_by_route">Offene Orte anhand Route sortieren</string>
 </resources>

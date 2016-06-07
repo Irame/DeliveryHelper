@@ -31,7 +31,7 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
 
         SwitchCompat autosortSwitch = (SwitchCompat) findViewById(R.id.settings_autosort_open_switch);
         if (autosortSwitch != null) {
-            autosortSwitch.setChecked(Settings.isAutosortForOpenLocationsEnabled(this));
+            autosortSwitch.setChecked(Settings.isAutosortByRouteForOpenLocationsEnabled(this));
             autosortSwitch.setOnCheckedChangeListener(this);
         }
 
@@ -48,7 +48,7 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         switch (buttonView.getId()) {
             case R.id.settings_autosort_open_switch:
-                Settings.setAutosortForOpenLocations(this, isChecked);
+                Settings.setAutosortByRouteForOpenLocations(this, isChecked);
                 break;
             case R.id.settings_remoteaccess_enabled_switch:
                 Settings.setRemoteAccess(this, isChecked);

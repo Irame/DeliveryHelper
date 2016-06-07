@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textOff=""
-        android:text="@string/autosort_open_locations"
+        android:text="@string/autosort_open_locations_by_route"
         android:background="@android:color/transparent"
         android:textOn=""
         android:button="@null"
