@@ -115,7 +115,7 @@ public class RemoteAccess {
             String[] rows = requestString.split("\\r?\\n");
             for (String row : rows) {
                 final String[] cells = row.split(";");
-                if (cells.length > 3 || cells.length < 2) continue;
+                if (cells.length > 4 || cells.length < 2) continue;
                 String address = cells[1];
                 AutocompletePredictionBuffer predictionBuffer = Places.GeoDataApi.getAutocompletePredictions(googleApiClient, address, null, null).await();
                 if (predictionBuffer.getCount() < 1) continue;
@@ -124,9 +124,10 @@ public class RemoteAccess {
                 LocationModel locationModel = new LocationModel() {{
                     name = cells[0];
                     place = new Place(geoPlace);
-                    if (cells.length == 3 && !setPrice(cells[2])) {
+                    if (cells.length >= 3 && !setPrice(cells[2])) {
                         Log.w(TAG, "Could not parse price for a location. (" + name + "; " + place.address + ")");
                     }
+                    if (cells.length >= 4) notes = cells[3];
                 }};
                 placeBuffer.release();
                 predictionBuffer.release();
