@@ -13,13 +13,13 @@ allprojects {
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.0"
 
     defaultConfig {
         applicationId "de.vanselow.deliveryhelper"
         minSdkVersion 22
-        targetSdkVersion 23
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
     }
@@ -70,7 +70,7 @@ dependencies {
     compile 'com.nhaarman.listviewanimations:lib-core-slh:3.1.0@aar'
     compile 'com.nineoldandroids:library:2.4.0'
     //compile 'com.koushikdutta.async:androidasync:2.+'
-    compile(name:'AndroidAsync', ext:'aar')
+    compile(name: 'AndroidAsync', ext: 'aar')
 }
 
 

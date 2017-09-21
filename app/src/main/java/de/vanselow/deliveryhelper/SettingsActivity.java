@@ -59,7 +59,7 @@ public class SettingsActivity extends AppCompatActivity implements CompoundButto
         TextView hostPortLabel = (TextView) findViewById(R.id.settings_host_port_label);
         if (hostPortLabel == null) return;
 
-        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         int ipAddress = wifiInfo.getIpAddress();
         String host = String.format(Locale.ENGLISH, "%d.%d.%d.%d",
